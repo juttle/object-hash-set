@@ -5,8 +5,8 @@
 #include "attrs-table.h"
 #include "persistent-string.h"
 
-std::string stdString(const v8::Local<v8::String>& spaceBucket) {
-    const v8::String::Utf8Value s(spaceBucket);
+std::string stdString(const v8::Local<v8::String>& bucket) {
+    const v8::String::Utf8Value s(bucket);
     return std::string(*s);
 }
 
@@ -24,11 +24,11 @@ BuboCache::~BuboCache() {
 }
 
 
-bool BuboCache::lookup(const v8::Local<v8::String>& spaceBucket,
+bool BuboCache::lookup(const v8::Local<v8::String>& bucket,
                        const v8::Local<v8::Object>& pt,
                        v8::Local<v8::String>& attr_str,
                        int* error) {
-    std::string key = stdString(spaceBucket);
+    std::string key = stdString(bucket);
     AttributesTable* at = NULL;
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it == bubo_cache_.end()) {
@@ -41,9 +41,9 @@ bool BuboCache::lookup(const v8::Local<v8::String>& spaceBucket,
 }
 
 
-void BuboCache::remove(const v8::Local<v8::String>& spaceBucket,
+void BuboCache::remove(const v8::Local<v8::String>& bucket,
                        const v8::Local<v8::Object>& pt) {
-    std::string key = stdString(spaceBucket);
+    std::string key = stdString(bucket);
 
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it != bubo_cache_.end()) {
@@ -51,27 +51,27 @@ void BuboCache::remove(const v8::Local<v8::String>& spaceBucket,
     }
 }
 
-long extractDay(const char* spaceBucket);
-char* extractSpace(const char* spaceBucket);
+long extractDay(const char* bucket);
+char* extractSpace(const char* bucket);
 
-long extractDay(const char* spaceBucket) {
-    const char* p = spaceBucket;
+long extractDay(const char* bucket) {
+    const char* p = bucket;
     while(*(p++) != '@');
     return strtol(p, NULL, 10);
 }
 
-int spaceLength(const char* spaceBucket) {
+int spaceLength(const char* bucket) {
     int i = 0;
-    while (spaceBucket[i] != '@') {
+    while (bucket[i] != '@') {
         i++;
     }
     return i;
 }
 
-void BuboCache::remove_bucket(const v8::Local<v8::String>& spaceBucket) {
+void BuboCache::remove_bucket(const v8::Local<v8::String>& bucket) {
     // Note that the bucket is always a numeric value.
     // We remove all buckets with numeric value less than or equal to the requested bucket.
-    const v8::String::Utf8Value s(spaceBucket);
+    const v8::String::Utf8Value s(bucket);
     const char* deleteSpace = *s;
     int length = spaceLength(deleteSpace);
     long deleteBucket = extractDay(deleteSpace);

@@ -14,15 +14,15 @@ public:
     BuboCache();
     virtual ~BuboCache();
 
-    bool lookup(const v8::Local<v8::String>& spaceBucket,
+    bool lookup(const v8::Local<v8::String>& bucket,
                 const v8::Local<v8::Object>& pt,
                 v8::Local<v8::String>& attr_str,
                 int* error);
 
-    void remove(const v8::Local<v8::String>& spaceBucket,
+    void remove(const v8::Local<v8::String>& bucket,
                 const v8::Local<v8::Object>& pt);
 
-    void remove_bucket(const v8::Local<v8::String>& spaceBucket);
+    void remove_bucket(const v8::Local<v8::String>& bucket);
 
     void stats(v8::Local<v8::Object>& stats) const;
 

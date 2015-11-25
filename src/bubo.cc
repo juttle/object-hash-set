@@ -69,14 +69,14 @@ JS_METHOD(Bubo, LookupPoint)
         return Nan::ThrowError("LookupPoint: invalid arguments");
     }
 
-    Local<String> spaceBucket = info[0].As<String>();
+    Local<String> bucket = info[0].As<String>();
     Local<Object> obj = info[1].As<Object>();
     Local<Object> result = info[2].As<Object>();
 
     Local<String> attrs;
     int error_value = 0;
     int* error = &error_value;
-    bool found = cache_.lookup(spaceBucket, obj, attrs, error);
+    bool found = cache_.lookup(bucket, obj, attrs, error);
 
     if (*error) {
         return Nan::ThrowError("point too big");
@@ -100,10 +100,10 @@ JS_METHOD(Bubo, RemovePoint)
         return Nan::ThrowError("RemovePoint: invalid arguments");
     }
 
-    Local<String> spaceBucket = info[0].As<String>();
+    Local<String> bucket = info[0].As<String>();
     Local<Object> obj = info[1].As<Object>();
 
-    cache_.remove(spaceBucket, obj);
+    cache_.remove(bucket, obj);
 
     return;
 }
@@ -117,8 +117,8 @@ JS_METHOD(Bubo, RemoveBucket)
         return Nan::ThrowError("RemoveBucket: invalid arguments");
     }
 
-    Local<String> spaceBucket = info[0].As<String>();
-    cache_.remove_bucket(spaceBucket);
+    Local<String> bucket = info[0].As<String>();
+    cache_.remove_bucket(bucket);
 
     return;
 }
