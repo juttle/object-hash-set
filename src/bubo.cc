@@ -22,7 +22,6 @@ NAN_METHOD(NewInstance) {
 
 NAN_METHOD(Bubo::New)
 {
-
     if (!info.IsConstructCall()) {
         return Nan::ThrowError("non-constructor invocation not supported");
     }

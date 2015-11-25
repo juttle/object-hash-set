@@ -5,9 +5,9 @@
 #include "attrs-table.h"
 #include "persistent-string.h"
 
-BuboCache::Bucket::Bucket(const v8::Local<v8::String>& spaceBucket) {
+std::string stdString(const v8::Local<v8::String>& spaceBucket) {
     const v8::String::Utf8Value s(spaceBucket);
-    spaceBucket_ = std::string(*s);
+    return std::string(*s);
 }
 
 BuboCache::BuboCache()
@@ -28,7 +28,7 @@ bool BuboCache::lookup(const v8::Local<v8::String>& spaceBucket,
                        const v8::Local<v8::Object>& pt,
                        v8::Local<v8::String>& attr_str,
                        int* error) {
-    Bucket key(spaceBucket);
+    std::string key = stdString(spaceBucket);
     AttributesTable* at = NULL;
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it == bubo_cache_.end()) {
@@ -43,7 +43,7 @@ bool BuboCache::lookup(const v8::Local<v8::String>& spaceBucket,
 
 void BuboCache::remove(const v8::Local<v8::String>& spaceBucket,
                        const v8::Local<v8::Object>& pt) {
-    Bucket key(spaceBucket);
+    std::string key = stdString(spaceBucket);
 
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it != bubo_cache_.end()) {
@@ -77,7 +77,7 @@ void BuboCache::remove_bucket(const v8::Local<v8::String>& spaceBucket) {
     long deleteBucket = extractDay(deleteSpace);
 
     for (bubo_cache_t::iterator it = bubo_cache_.begin(); it != bubo_cache_.end(); ) {
-        const char* storedString = it->first.spaceBucket_.c_str();
+        const char* storedString = it->first.c_str();
 
         if (!strncmp(deleteSpace, storedString, length)) {
             long storedBucket = extractDay(storedString);
@@ -107,6 +107,6 @@ void BuboCache::stats(v8::Local<v8::Object>& stats) const {
         v8::Local<v8::Object> attr_stats = Nan::New<v8::Object>();
 
         it->second->stats(attr_stats);
-        Nan::Set(stats, Nan::New(it->first.spaceBucket_.c_str()).ToLocalChecked(), attr_stats);
+        Nan::Set(stats, Nan::New(it->first.c_str()).ToLocalChecked(), attr_stats);
     }
 }
