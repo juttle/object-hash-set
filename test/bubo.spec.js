@@ -26,9 +26,8 @@ function getAttributeString(pt, ignoredAttributes) {
 
 var result = {};
 
-function lookup(bubo, bucket, point) {
-    bubo.lookup_point(bucket, point, result);
-    return result;
+function add(bubo, bucket, point) {
+    return bubo.add(bucket, point, result);
 }
 
 var options = {}
@@ -37,11 +36,11 @@ describe('bubo', function() {
     it('initializes properly', function() {
         var bubo = new Bubo(options);
 
-        expect(bubo.lookup_point).is.a.function;
+        expect(bubo.add).is.a.function;
 
         expect(function() {
-            bubo.lookup_point({});
-        }).to.throw('LookupPoint: invalid arguments');
+            bubo.add({});
+        }).to.throw('Add: invalid arguments');
 
     });
 
@@ -50,7 +49,7 @@ describe('bubo', function() {
         bubo.test();
     });
 
-    it('handles lookup and remove correctly', function() {
+    it('handles add and remove correctly', function() {
         var bubo = new Bubo(options);
 
         var pt = {
@@ -67,40 +66,40 @@ describe('bubo', function() {
 
         var expected = getAttributeString(pt);
 
-        // Lookup in different space-buckets combinations.
+        // add in different space-buckets combinations.
         // The 'found' should be false when the space-bucket is called first time.
 
-        var v = lookup(bubo, 'aaa', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.false;
+        var found = add(bubo, 'aaa', pt);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.false;
 
-        v = lookup(bubo, 'bbb', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.false;
+        found = add(bubo, 'bbb', pt);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.false;
 
-        v = lookup(bubo, 'ccc', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.false;
+        found = add(bubo, 'ccc', pt);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.false;
 
         // The same calls should have found == true the second time.
-        v = lookup(bubo, 'aaa', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.true;
+        found = add(bubo, 'aaa', pt);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.true;
 
-        v = lookup(bubo, 'bbb', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.true;
+        found = add(bubo, 'bbb', pt);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.true;
 
-        v = lookup(bubo, 'ccc', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.true;
+        found = add(bubo, 'ccc', pt);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.true;
 
-        // modify pt and lookup. This should be false, and the attr_atr should differ from expected.
+        // modify pt and add. This should be false, and the attr_atr should differ from expected.
         var pt2 = JSON.parse(JSON.stringify(pt));
         pt2.pop = 'NY';
-        v = lookup(bubo, 'aaa', pt2);
-        expect(v.attr_str).not.equal(expected);
-        expect(v.found).to.be.false;
+        found = add(bubo, 'aaa', pt2);
+        expect(result.attr_str).not.equal(expected);
+        expect(found).to.be.false;
 
     });
 
@@ -122,7 +121,7 @@ describe('bubo', function() {
         var v;
 
         /*
-        Create the point in these space-bucket combinations by performing a lookup:
+        Create the point in these space-bucket combinations by performing a add:
             s1,12
             s1,22
             s1,32
@@ -132,62 +131,62 @@ describe('bubo', function() {
             s3,52
         First time all are not found.
 
-        Now, remove_bucket(s1, 12), and lookup all again.
+        Now, remove_bucket(s1, 12), and add all again.
         All but (s1,12) should be true.
 
-        Now, remove_space(s1,32), and lookup again.
+        Now, remove_space(s1,32), and add again.
         Since all buckets <= 32 should have been removed, and hence should be false.
         */
 
-        v = lookup(bubo, 's1@12', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@22', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@32', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@42', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@52', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's2@42', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's3@52', pt);
-        expect(v.found).to.be.false;
+        found = add(bubo, 's1@12', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@22', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@32', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@42', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@52', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's2@42', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's3@52', pt);
+        expect(found).to.be.false;
 
         bubo.remove_bucket('s1@12');
 
-        v = lookup(bubo, 's1@12', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@22', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@32', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@52', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's2@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's3@52', pt);
-        expect(v.found).to.be.true;
+        found = add(bubo, 's1@12', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@22', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's1@32', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's1@42', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's1@52', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's2@42', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's3@52', pt);
+        expect(found).to.be.true;
 
         // Use integer second param to ensure both integer and string are accepted.
         bubo.remove_bucket('s1@32');
 
-        v = lookup(bubo, 's1@12', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@22', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@32', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@52', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's2@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's3@52', pt);
-        expect(v.found).to.be.true;
+        found = add(bubo, 's1@12', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@22', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@32', pt);
+        expect(found).to.be.false;
+        found = add(bubo, 's1@42', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's1@52', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's2@42', pt);
+        expect(found).to.be.true;
+        found = add(bubo, 's3@52', pt);
+        expect(found).to.be.true;
     });
 
     it('returns appropriate stats', function() {
@@ -216,7 +215,7 @@ describe('bubo', function() {
             source_type: 'metric'
         };
 
-        var v = lookup(bubo, 'spc@bkt', pt);
+        var found = add(bubo, 'spc@bkt', pt);
         s1 = {};
         bubo.stats(s1);
 
@@ -231,7 +230,7 @@ describe('bubo', function() {
             name: 'apple',
             pop: 'NY',
         };
-        v = lookup(bubo, 'spc@bkt', pt);
+        found = add(bubo, 'spc@bkt', pt);
         s1 = {};
         bubo.stats(s1);
 
@@ -265,7 +264,7 @@ describe('bubo', function() {
         for (var i = 0; i < 7000000; i++) {
             pt.pop = 'SF' + i;
             pt.value2 = pt.value2 + (2* i);
-            lookup(bubo, 'test-space-1@421', pt);
+            add(bubo, 'test-space-1@421', pt);
             if (i % 1000000 === 0) {
                 s1 = {};
                 bubo.stats(s1);
@@ -297,8 +296,8 @@ describe('bubo', function() {
         };
 
         try {
-            lookup(bubo, 'big@data', point);
-            throw new Error('lookup should have failed');
+            add(bubo, 'big@data', point);
+            throw new Error('add should have failed');
         } catch (err) {
             expect(err.message).equal('point too big');
         }

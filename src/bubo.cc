@@ -61,12 +61,12 @@ NAN_METHOD(Bubo::Initialize)
     bubo_utils::initialize(ignored);
 }
 
-JS_METHOD(Bubo, LookupPoint)
+JS_METHOD(Bubo, Add)
 {
     Nan::HandleScope scope;
 
     if (info.Length() < 3) {
-        return Nan::ThrowError("LookupPoint: invalid arguments");
+        return Nan::ThrowError("Add: invalid arguments");
     }
 
     Local<String> bucket = info[0].As<String>();
@@ -82,13 +82,11 @@ JS_METHOD(Bubo, LookupPoint)
         return Nan::ThrowError("point too big");
     }
 
-    static PersistentString founded("found");
     static PersistentString attr_str("attr_str");
 
-    Nan::Set(result, founded, Nan::New<Boolean>(found));
     Nan::Set(result, attr_str, attrs);
 
-    return;
+    info.GetReturnValue().Set(found);
 }
 
 
@@ -157,7 +155,7 @@ Bubo::Init(Handle<Object> exports)
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Prototype
-    Nan::SetPrototypeMethod(tpl, "lookup_point", JS_METHOD_NAME(LookupPoint));
+    Nan::SetPrototypeMethod(tpl, "add", JS_METHOD_NAME(Add));
     Nan::SetPrototypeMethod(tpl, "remove_point", JS_METHOD_NAME(RemovePoint));
     Nan::SetPrototypeMethod(tpl, "remove_bucket", JS_METHOD_NAME(RemoveBucket));
     Nan::SetPrototypeMethod(tpl, "test", JS_METHOD_NAME(Test));
