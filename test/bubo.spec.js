@@ -30,6 +30,10 @@ function add(bubo, bucket, point) {
     return bubo.add(bucket, point, result);
 }
 
+function contains(bubo, bucket, point) {
+    return bubo.contains(bucket, point);
+}
+
 var options = {}
 
 describe('bubo', function() {
@@ -101,6 +105,38 @@ describe('bubo', function() {
         expect(result.attr_str).not.equal(expected);
         expect(found).to.be.false;
 
+    });
+
+    it('contains: checks if a point has been added without adding it', function() {
+        var bubo = new Bubo(options);
+        var bucket = 'contains_bucket';
+
+        var pt = {
+            name: 'cpu.system',
+            pop: 'SF',
+            host: 'foo.com',
+            time: new Date(),
+            time2: new Date(),
+            value: 100,
+            value2: 100,
+            value3: 100.999,
+            source_type: 'metric',
+        };
+
+        var found = contains(bubo, bucket, pt);
+        expect(found).equal(false);
+
+        found = contains(bubo, bucket, pt);
+        expect(found).equal(false);
+
+        found = add(bubo, bucket, pt);
+        expect(found).equal(false);
+
+        found = contains(bubo, bucket, pt);
+        expect(found).equal(true);
+
+        found = contains(bubo, bucket, pt);
+        expect(found).equal(true);
     });
 
     it('handles remove_bucket correctly', function() {

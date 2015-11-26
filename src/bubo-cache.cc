@@ -24,7 +24,7 @@ BuboCache::~BuboCache() {
 }
 
 
-bool BuboCache::lookup(const v8::Local<v8::String>& bucket,
+bool BuboCache::add(const v8::Local<v8::String>& bucket,
                        const v8::Local<v8::Object>& pt,
                        v8::Local<v8::String>& attr_str,
                        int* error) {
@@ -37,7 +37,20 @@ bool BuboCache::lookup(const v8::Local<v8::String>& bucket,
     } else {
         at = it->second;
     }
-    return at->lookup(pt, attr_str, error);
+    return at->add(pt, attr_str, error);
+}
+
+bool BuboCache::contains(const v8::Local<v8::String>& bucket,
+                       const v8::Local<v8::Object>& pt,
+                       int* error) {
+    std::string key = stdString(bucket);
+    bubo_cache_t::iterator it = bubo_cache_.find(key);
+    if (it == bubo_cache_.end()) {
+        return false;
+    } else {
+        AttributesTable* at = it->second;
+        return at->contains(pt, error);
+    }
 }
 
 

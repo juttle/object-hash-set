@@ -21,6 +21,7 @@ private:
     NAN_METHOD(Initialize);
 
     JS_METHOD_DECL(Add);
+    JS_METHOD_DECL(Contains);
     JS_METHOD_DECL(RemovePoint);
     JS_METHOD_DECL(RemoveBucket);
     JS_METHOD_DECL(Stats);

@@ -18,8 +18,7 @@ AttributesTable::AttributesTable(StringsTable* strings_table)
         }
 
 
-/* Return true if the point corresponding to the tags/tagnames is found */
-bool AttributesTable::lookup(const v8::Local<v8::Object>& pt,
+bool AttributesTable::add(const v8::Local<v8::Object>& pt,
                              v8::Local<v8::String>& attr_str, int* error) {
     int entrylen = 0;
 
@@ -30,6 +29,19 @@ bool AttributesTable::lookup(const v8::Local<v8::Object>& pt,
     }
 
     return !attributes_hash_set_.insert(entry_buf_, entrylen);
+}
+
+bool AttributesTable::contains(const v8::Local<v8::Object>& pt, int* error) {
+    int entrylen = 0;
+    v8::Local<v8::String> dummy;
+
+    prepare_entry_buffer(pt, &entrylen, false, dummy, error);
+
+    if (*error) {
+        return false;
+    }
+
+    return attributes_hash_set_.contains(entry_buf_, entrylen);
 }
 
 void AttributesTable::remove(const v8::Local<v8::Object>& pt) {

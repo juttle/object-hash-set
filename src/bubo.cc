@@ -76,7 +76,7 @@ JS_METHOD(Bubo, Add)
     Local<String> attrs;
     int error_value = 0;
     int* error = &error_value;
-    bool found = cache_.lookup(bucket, obj, attrs, error);
+    bool found = cache_.add(bucket, obj, attrs, error);
 
     if (*error) {
         return Nan::ThrowError("point too big");
@@ -85,6 +85,27 @@ JS_METHOD(Bubo, Add)
     static PersistentString attr_str("attr_str");
 
     Nan::Set(result, attr_str, attrs);
+
+    info.GetReturnValue().Set(found);
+}
+
+JS_METHOD(Bubo, Contains)
+{
+    Nan::HandleScope scope;
+
+    if (info.Length() < 2) {
+        return Nan::ThrowError("Contains: invalid arguments");
+    }
+
+    Local<String> bucket = info[0].As<String>();
+    Local<Object> obj = info[1].As<Object>();
+
+    int error_value = 0;
+    int* error = &error_value;
+    bool found = cache_.contains(bucket, obj, error);
+    if (*error) {
+        return Nan::ThrowError("point too big");
+    }
 
     info.GetReturnValue().Set(found);
 }
@@ -156,6 +177,7 @@ Bubo::Init(Handle<Object> exports)
 
     // Prototype
     Nan::SetPrototypeMethod(tpl, "add", JS_METHOD_NAME(Add));
+    Nan::SetPrototypeMethod(tpl, "contains", JS_METHOD_NAME(Contains));
     Nan::SetPrototypeMethod(tpl, "remove_point", JS_METHOD_NAME(RemovePoint));
     Nan::SetPrototypeMethod(tpl, "remove_bucket", JS_METHOD_NAME(RemoveBucket));
     Nan::SetPrototypeMethod(tpl, "test", JS_METHOD_NAME(Test));
