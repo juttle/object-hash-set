@@ -24,6 +24,7 @@ private:
     JS_METHOD_DECL(Contains);
     JS_METHOD_DECL(Delete);
     JS_METHOD_DECL(DeleteBucket);
+    JS_METHOD_DECL(GetBuckets);
     JS_METHOD_DECL(Stats);
     JS_METHOD_DECL(Test);
 

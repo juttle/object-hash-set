@@ -28,6 +28,8 @@ public:
 
     void delete_bucket(const v8::Local<v8::String>& bucket);
 
+    v8::Local<v8::Array> get_buckets();
+
     void stats(v8::Local<v8::Object>& stats) const;
 
 protected:

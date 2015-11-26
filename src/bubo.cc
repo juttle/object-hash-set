@@ -142,6 +142,14 @@ JS_METHOD(Bubo, DeleteBucket)
     return;
 }
 
+JS_METHOD(Bubo, GetBuckets) {
+    Nan::HandleScope scope;
+
+    v8::Local<v8::Array> buckets = cache_.get_buckets();
+
+    info.GetReturnValue().Set(buckets);
+}
+
 JS_METHOD(Bubo, Test)
 {
     Nan::HandleScope scope;
@@ -180,6 +188,7 @@ Bubo::Init(Handle<Object> exports)
     Nan::SetPrototypeMethod(tpl, "contains", JS_METHOD_NAME(Contains));
     Nan::SetPrototypeMethod(tpl, "delete", JS_METHOD_NAME(Delete));
     Nan::SetPrototypeMethod(tpl, "delete_bucket", JS_METHOD_NAME(DeleteBucket));
+    Nan::SetPrototypeMethod(tpl, "get_buckets", JS_METHOD_NAME(GetBuckets));
     Nan::SetPrototypeMethod(tpl, "test", JS_METHOD_NAME(Test));
     Nan::SetPrototypeMethod(tpl, "stats", JS_METHOD_NAME(Stats));
 

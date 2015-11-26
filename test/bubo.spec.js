@@ -165,6 +165,37 @@ describe('bubo', function() {
         expect(contains(bubo, bucket, pt)).equal(false);
     });
 
+    it('get_buckets', function() {
+        var bubo = new Bubo(options);
+
+        var initial_buckets = bubo.get_buckets();
+        expect(initial_buckets).deep.equal([]);
+
+        var pt = {
+            name: 'cpu.system',
+            pop: 'SF',
+            host: 'foo.com',
+            time: new Date(),
+            time2: new Date(),
+            value: 100,
+            value2: 100,
+            value3: 100.999,
+            source_type: 'metric',
+        };
+
+        var bucket1 = 'bucket1';
+        var bucket2 = 'bucket2';
+        var bucket3 = 'bucket3';
+
+        add(bubo, bucket1, pt);
+        add(bubo, bucket2, pt);
+        add(bubo, bucket3, pt);
+
+        var buckets = bubo.get_buckets().sort();
+
+        expect(buckets).deep.equal([bucket1, bucket2, bucket3]);
+    });
+
     it('handles delete_bucket correctly', function() {
         var bubo = new Bubo(options);
 

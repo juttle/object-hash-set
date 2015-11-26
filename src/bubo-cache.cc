@@ -70,6 +70,19 @@ void BuboCache::delete_bucket(const v8::Local<v8::String>& bucket) {
     bubo_cache_.erase(str);
 }
 
+v8::Local<v8::Array> BuboCache::get_buckets() {
+    v8::Local<v8::Array> keys = v8::Array::New();
+    int k = 0;
+
+    for(bubo_cache_t::iterator it = bubo_cache_.begin(); it != bubo_cache_.end(); ++it) {
+        std::string key = it->first;
+        v8::Local<v8::String> key_str = Nan::New<v8::String>(key).ToLocalChecked();;
+        keys->Set(k++, key_str);
+    }
+
+    return keys;
+}
+
 void BuboCache::stats(v8::Local<v8::Object>& stats) const {
 
     static PersistentString strings_table("strings_table");
