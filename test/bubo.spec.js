@@ -139,6 +139,32 @@ describe('bubo', function() {
         expect(found).equal(true);
     });
 
+    it('delete: removes a specified point', function() {
+        var bubo = new Bubo(options);
+
+        var pt = {
+            name: 'cpu.system',
+            pop: 'SF',
+            host: 'foo.com',
+            time: new Date(),
+            time2: new Date(),
+            value: 100,
+            value2: 100,
+            value3: 100.999,
+            source_type: 'metric',
+        };
+
+        var bucket = 'delete_test';
+
+        add(bubo, bucket, pt);
+
+        expect(contains(bubo, bucket, pt)).equal(true);
+
+        bubo.delete('delete_test', pt);
+
+        expect(contains(bubo, bucket, pt)).equal(false);
+    });
+
     it('handles remove_bucket correctly', function() {
         var bubo = new Bubo(options);
 

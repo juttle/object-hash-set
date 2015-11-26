@@ -111,12 +111,12 @@ JS_METHOD(Bubo, Contains)
 }
 
 
-JS_METHOD(Bubo, RemovePoint)
+JS_METHOD(Bubo, Delete)
 {
     Nan::HandleScope scope;
 
     if (info.Length() < 2) {
-        return Nan::ThrowError("RemovePoint: invalid arguments");
+        return Nan::ThrowError("Delete: invalid arguments");
     }
 
     Local<String> bucket = info[0].As<String>();
@@ -178,7 +178,7 @@ Bubo::Init(Handle<Object> exports)
     // Prototype
     Nan::SetPrototypeMethod(tpl, "add", JS_METHOD_NAME(Add));
     Nan::SetPrototypeMethod(tpl, "contains", JS_METHOD_NAME(Contains));
-    Nan::SetPrototypeMethod(tpl, "remove_point", JS_METHOD_NAME(RemovePoint));
+    Nan::SetPrototypeMethod(tpl, "delete", JS_METHOD_NAME(Delete));
     Nan::SetPrototypeMethod(tpl, "remove_bucket", JS_METHOD_NAME(RemoveBucket));
     Nan::SetPrototypeMethod(tpl, "test", JS_METHOD_NAME(Test));
     Nan::SetPrototypeMethod(tpl, "stats", JS_METHOD_NAME(Stats));
