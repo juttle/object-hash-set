@@ -26,7 +26,7 @@ public:
     void remove(const v8::Local<v8::String>& bucket,
                 const v8::Local<v8::Object>& pt);
 
-    void remove_bucket(const v8::Local<v8::String>& bucket);
+    void delete_bucket(const v8::Local<v8::String>& bucket);
 
     void stats(v8::Local<v8::Object>& stats) const;
 

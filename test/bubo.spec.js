@@ -165,7 +165,7 @@ describe('bubo', function() {
         expect(contains(bubo, bucket, pt)).equal(false);
     });
 
-    it('handles remove_bucket correctly', function() {
+    it('handles delete_bucket correctly', function() {
         var bubo = new Bubo(options);
 
         var pt = {
@@ -180,75 +180,14 @@ describe('bubo', function() {
             source_type: 'metric',
         };
 
-        var v;
+        var bucket = 'delete_this_bucket';
 
-        /*
-        Create the point in these space-bucket combinations by performing a add:
-            s1,12
-            s1,22
-            s1,32
-            s1,42
-            s1.52
-            s2,42
-            s3,52
-        First time all are not found.
+        var found = add(bubo, bucket, pt);
+        expect(found).to.be.false;
+        expect(contains(bubo, bucket, pt)).equal(true);
 
-        Now, remove_bucket(s1, 12), and add all again.
-        All but (s1,12) should be true.
-
-        Now, remove_space(s1,32), and add again.
-        Since all buckets <= 32 should have been removed, and hence should be false.
-        */
-
-        found = add(bubo, 's1@12', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@22', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@32', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@42', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@52', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's2@42', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's3@52', pt);
-        expect(found).to.be.false;
-
-        bubo.remove_bucket('s1@12');
-
-        found = add(bubo, 's1@12', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@22', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's1@32', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's1@42', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's1@52', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's2@42', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's3@52', pt);
-        expect(found).to.be.true;
-
-        // Use integer second param to ensure both integer and string are accepted.
-        bubo.remove_bucket('s1@32');
-
-        found = add(bubo, 's1@12', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@22', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@32', pt);
-        expect(found).to.be.false;
-        found = add(bubo, 's1@42', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's1@52', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's2@42', pt);
-        expect(found).to.be.true;
-        found = add(bubo, 's3@52', pt);
-        expect(found).to.be.true;
+        bubo.delete_bucket(bucket);
+        expect(contains(bubo, bucket, pt)).equal(false);
     });
 
     it('returns appropriate stats', function() {

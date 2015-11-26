@@ -64,47 +64,10 @@ void BuboCache::remove(const v8::Local<v8::String>& bucket,
     }
 }
 
-long extractDay(const char* bucket);
-char* extractSpace(const char* bucket);
-
-long extractDay(const char* bucket) {
-    const char* p = bucket;
-    while(*(p++) != '@');
-    return strtol(p, NULL, 10);
-}
-
-int spaceLength(const char* bucket) {
-    int i = 0;
-    while (bucket[i] != '@') {
-        i++;
-    }
-    return i;
-}
-
-void BuboCache::remove_bucket(const v8::Local<v8::String>& bucket) {
-    // Note that the bucket is always a numeric value.
-    // We remove all buckets with numeric value less than or equal to the requested bucket.
+void BuboCache::delete_bucket(const v8::Local<v8::String>& bucket) {
     const v8::String::Utf8Value s(bucket);
-    const char* deleteSpace = *s;
-    int length = spaceLength(deleteSpace);
-    long deleteBucket = extractDay(deleteSpace);
-
-    for (bubo_cache_t::iterator it = bubo_cache_.begin(); it != bubo_cache_.end(); ) {
-        const char* storedString = it->first.c_str();
-
-        if (!strncmp(deleteSpace, storedString, length)) {
-            long storedBucket = extractDay(storedString);
-
-            if (storedBucket <= deleteBucket) {
-                delete it->second;
-                it = bubo_cache_.erase(it);
-            } else {
-                it++;
-            }
-        } else {
-            it++;
-        }
-    }
+    std::string str(*s);
+    bubo_cache_.erase(str);
 }
 
 void BuboCache::stats(v8::Local<v8::Object>& stats) const {
