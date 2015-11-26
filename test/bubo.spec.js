@@ -3,10 +3,10 @@ var _ = require('underscore');
 var expect = require('chai').expect;
 var util = require('util');
 
-function getAttributeString(pt, ignoredAttributes) {
+function getAttributeString(point, ignoredAttributes) {
     ignoredAttributes = ignoredAttributes || {};
     var keys = [];
-    _.each(pt, function(val, key) {
+    _.each(point, function(val, key) {
         if (!ignoredAttributes[key]) {
             keys.push(key);
         }
@@ -17,7 +17,7 @@ function getAttributeString(pt, ignoredAttributes) {
     var attrString = '';
     var comma = '';
     for (var tag = keys.length - 1; tag >= 0; tag--) {
-        attrString = keys[tag] + '=' + pt[keys[tag]] + comma + attrString;
+        attrString = keys[tag] + '=' + point[keys[tag]] + comma + attrString;
         comma = ',';
     }
 
@@ -37,6 +37,18 @@ function contains(bubo, bucket, point) {
 var options = {}
 
 describe('bubo', function() {
+    var point = {
+        name: 'cpu.system',
+        pop: 'SF',
+        host: 'foo.com',
+        time: new Date(),
+        time2: new Date(),
+        value: 100,
+        value2: 100,
+        value3: 100.999,
+        source_type: 'metric',
+    };
+
     it('initializes properly', function() {
         var bubo = new Bubo(options);
 
@@ -56,52 +68,40 @@ describe('bubo', function() {
     it('handles add and remove correctly', function() {
         var bubo = new Bubo(options);
 
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
-
-        var expected = getAttributeString(pt);
+        var expected = getAttributeString(point);
 
         // add in different space-buckets combinations.
         // The 'found' should be false when the space-bucket is called first time.
 
-        var found = add(bubo, 'aaa', pt);
+        var found = add(bubo, 'aaa', point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.false;
 
-        found = add(bubo, 'bbb', pt);
+        found = add(bubo, 'bbb', point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.false;
 
-        found = add(bubo, 'ccc', pt);
+        found = add(bubo, 'ccc', point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.false;
 
         // The same calls should have found == true the second time.
-        found = add(bubo, 'aaa', pt);
+        found = add(bubo, 'aaa', point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.true;
 
-        found = add(bubo, 'bbb', pt);
+        found = add(bubo, 'bbb', point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.true;
 
-        found = add(bubo, 'ccc', pt);
+        found = add(bubo, 'ccc', point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.true;
 
-        // modify pt and add. This should be false, and the attr_atr should differ from expected.
-        var pt2 = JSON.parse(JSON.stringify(pt));
-        pt2.pop = 'NY';
-        found = add(bubo, 'aaa', pt2);
+        // modify point and add. This should be false, and the attr_atr should differ from expected.
+        var point2 = JSON.parse(JSON.stringify(point));
+        point2.pop = 'NY';
+        found = add(bubo, 'aaa', point2);
         expect(result.attr_str).not.equal(expected);
         expect(found).to.be.false;
 
@@ -111,85 +111,48 @@ describe('bubo', function() {
         var bubo = new Bubo(options);
         var bucket = 'contains_bucket';
 
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
-
-        var found = contains(bubo, bucket, pt);
+        var found = contains(bubo, bucket, point);
         expect(found).equal(false);
 
-        found = contains(bubo, bucket, pt);
+        found = contains(bubo, bucket, point);
         expect(found).equal(false);
 
-        found = add(bubo, bucket, pt);
+        found = add(bubo, bucket, point);
         expect(found).equal(false);
 
-        found = contains(bubo, bucket, pt);
+        found = contains(bubo, bucket, point);
         expect(found).equal(true);
 
-        found = contains(bubo, bucket, pt);
+        found = contains(bubo, bucket, point);
         expect(found).equal(true);
     });
 
     it('delete: removes a specified point', function() {
         var bubo = new Bubo(options);
-
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
-
         var bucket = 'delete_test';
 
-        add(bubo, bucket, pt);
+        add(bubo, bucket, point);
 
-        expect(contains(bubo, bucket, pt)).equal(true);
+        expect(contains(bubo, bucket, point)).equal(true);
 
-        bubo.delete('delete_test', pt);
+        bubo.delete('delete_test', point);
 
-        expect(contains(bubo, bucket, pt)).equal(false);
+        expect(contains(bubo, bucket, point)).equal(false);
     });
 
     it('get_buckets', function() {
         var bubo = new Bubo(options);
-
         var initial_buckets = bubo.get_buckets();
-        expect(initial_buckets).deep.equal([]);
 
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
+        expect(initial_buckets).deep.equal([]);
 
         var bucket1 = 'bucket1';
         var bucket2 = 'bucket2';
         var bucket3 = 'bucket3';
 
-        add(bubo, bucket1, pt);
-        add(bubo, bucket2, pt);
-        add(bubo, bucket3, pt);
+        add(bubo, bucket1, point);
+        add(bubo, bucket2, point);
+        add(bubo, bucket3, point);
 
         var buckets = bubo.get_buckets().sort();
 
@@ -198,27 +161,14 @@ describe('bubo', function() {
 
     it('handles delete_bucket correctly', function() {
         var bubo = new Bubo(options);
-
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
-
         var bucket = 'delete_this_bucket';
 
-        var found = add(bubo, bucket, pt);
+        var found = add(bubo, bucket, point);
         expect(found).to.be.false;
-        expect(contains(bubo, bucket, pt)).equal(true);
+        expect(contains(bubo, bucket, point)).equal(true);
 
         bubo.delete_bucket(bucket);
-        expect(contains(bubo, bucket, pt)).equal(false);
+        expect(contains(bubo, bucket, point)).equal(false);
     });
 
     it('returns appropriate stats', function() {
@@ -234,20 +184,7 @@ describe('bubo', function() {
         bubo.stats(s1);
         expect(s1.strings_table.num_tags).equal(0);
 
-        // [1]
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric'
-        };
-
-        var found = add(bubo, 'spc@bkt', pt);
+        var found = add(bubo, 'spc@bkt', point);
         s1 = {};
         bubo.stats(s1);
 
@@ -257,12 +194,11 @@ describe('bubo', function() {
         expect(s1['spc@bkt'].blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1['spc@bkt'].blob_used_bytes).equal(13); // 1 byte for size, 6 x 2 bytes since all small numbers.
 
-        // [2] another point that reuses some strings.
-        pt = {
+        var point2 = {
             name: 'apple',
             pop: 'NY',
         };
-        found = add(bubo, 'spc@bkt', pt);
+        found = add(bubo, 'spc@bkt', point2);
         s1 = {};
         bubo.stats(s1);
 
@@ -276,18 +212,6 @@ describe('bubo', function() {
 
     it('has an ignoredAttributes per Bubo', function() {
         var bucket = 'ignored_attributes_bucket';
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
-
         var ignoredAttributes1 = {
             time: true
         };
@@ -306,12 +230,12 @@ describe('bubo', function() {
             ignoredAttributes: ignoredAttributes2
         });
 
-        var expected1 = getAttributeString(pt, ignoredAttributes1);
-        add(bubo1, bucket, pt);
+        var expected1 = getAttributeString(point, ignoredAttributes1);
+        add(bubo1, bucket, point);
         expect(result.attr_str).equal(expected1);
 
-        var expected2 = getAttributeString(pt, ignoredAttributes2);
-        add(bubo2, bucket, pt);
+        var expected2 = getAttributeString(point, ignoredAttributes2);
+        add(bubo2, bucket, point);
         expect(result.attr_str).equal(expected2);
     });
 
