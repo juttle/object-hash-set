@@ -19,11 +19,11 @@ AttributesTable::AttributesTable(StringsTable* strings_table, v8::Handle<v8::Obj
         }
 
 
-bool AttributesTable::add(const v8::Local<v8::Object>& pt,
+bool AttributesTable::add(const v8::Local<v8::Object>& pt, bool should_get_attr_str,
                              v8::Local<v8::String>& attr_str, int* error) {
     int entrylen = 0;
 
-    prepare_entry_buffer(pt, &entrylen, true, attr_str, error);
+    prepare_entry_buffer(pt, &entrylen, should_get_attr_str, attr_str, error);
 
     if (*error) {
         return false;

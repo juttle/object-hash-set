@@ -29,6 +29,7 @@ void BuboCache::initialize(v8::Local<v8::Object> ignoredAttrs) {
 
 bool BuboCache::add(const v8::Local<v8::String>& bucket,
                        const v8::Local<v8::Object>& pt,
+                       bool should_get_attr_str,
                        v8::Local<v8::String>& attr_str,
                        int* error) {
     std::string key = stdString(bucket);
@@ -40,7 +41,7 @@ bool BuboCache::add(const v8::Local<v8::String>& bucket,
     } else {
         at = it->second;
     }
-    return at->add(pt, attr_str, error);
+    return at->add(pt, should_get_attr_str, attr_str, error);
 }
 
 bool BuboCache::contains(const v8::Local<v8::String>& bucket,

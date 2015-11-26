@@ -14,7 +14,7 @@ public:
 	AttributesTable(StringsTable* strings_table, v8::Handle<v8::Object> ignored_attributes);
     virtual ~AttributesTable();
 
-	bool add(const v8::Local<v8::Object>& pt, v8::Local<v8::String>& attr_str, int* error);
+	bool add(const v8::Local<v8::Object>& pt, bool should_get_attr_str, v8::Local<v8::String>& attr_str, int* error);
 	bool contains(const v8::Local<v8::Object>& pt, int* error);
     void remove(const v8::Local<v8::Object>& pt);
     void stats(v8::Local<v8::Object>& stats) const;

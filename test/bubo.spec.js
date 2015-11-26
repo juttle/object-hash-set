@@ -107,6 +107,14 @@ describe('bubo', function() {
 
     });
 
+    it('add without result works', function() {
+        var bubo = new Bubo(options);
+        var bucket = 'add_no_result_test';
+        bubo.add(bucket, point);
+
+        expect(bubo.contains(bucket, point)).equal(true);
+    });
+
     it('contains: checks if a point has been added without adding it', function() {
         var bubo = new Bubo(options);
         var bucket = 'contains_bucket';

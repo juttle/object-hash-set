@@ -18,6 +18,7 @@ public:
 
     bool add(const v8::Local<v8::String>& bucket,
                 const v8::Local<v8::Object>& pt,
+                bool should_get_attr_str,
                 v8::Local<v8::String>& attr_str,
                 int* error);
 

@@ -64,19 +64,20 @@ NAN_METHOD(Bubo::Initialize)
 JS_METHOD(Bubo, Add)
 {
     Nan::HandleScope scope;
+    int num_arguments = info.Length();
 
-    if (info.Length() < 3) {
+    if (num_arguments < 2) {
         return Nan::ThrowError("Add: invalid arguments");
     }
 
     Local<String> bucket = info[0].As<String>();
     Local<Object> obj = info[1].As<Object>();
-    Local<Object> result = info[2].As<Object>();
 
     Local<String> attrs;
     int error_value = 0;
     int* error = &error_value;
-    bool found = cache_.add(bucket, obj, attrs, error);
+    bool should_get_attr_str = num_arguments >= 3;
+    bool found = cache_.add(bucket, obj, should_get_attr_str, attrs, error);
 
     if (*error) {
         return Nan::ThrowError("point too big");
@@ -84,7 +85,10 @@ JS_METHOD(Bubo, Add)
 
     static PersistentString attr_str("attr_str");
 
-    Nan::Set(result, attr_str, attrs);
+    if (should_get_attr_str) {
+        Local<Object> result = info[2].As<Object>();
+        Nan::Set(result, attr_str, attrs);
+    }
 
     info.GetReturnValue().Set(found);
 }
