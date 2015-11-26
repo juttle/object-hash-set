@@ -58,7 +58,7 @@ NAN_METHOD(Bubo::Initialize)
     Local<Value> ignoredVal = Nan::Get(opts, ignoredAttributes).ToLocalChecked();
     Local<Object> ignored = Nan::To<Object>(ignoredVal).ToLocalChecked();
 
-    bubo_utils::initialize(ignored);
+    cache_.initialize(ignored);
 }
 
 JS_METHOD(Bubo, Add)

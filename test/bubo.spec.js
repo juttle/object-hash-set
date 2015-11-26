@@ -274,6 +274,47 @@ describe('bubo', function() {
         expect(s1['spc@bkt'].blob_used_bytes).equal(18); // 1 byte for size + 2 x 2 bytes = 5. already have 13, so total 18.
     });
 
+    it('has an ignoredAttributes per Bubo', function() {
+        var bucket = 'ignored_attributes_bucket';
+        var pt = {
+            name: 'cpu.system',
+            pop: 'SF',
+            host: 'foo.com',
+            time: new Date(),
+            time2: new Date(),
+            value: 100,
+            value2: 100,
+            value3: 100.999,
+            source_type: 'metric',
+        };
+
+        var ignoredAttributes1 = {
+            time: true
+        };
+
+        var ignoredAttributes2 = {
+            time: true,
+            pop: true,
+            name: true
+        };
+
+        var bubo1 = new Bubo({
+            ignoredAttributes: ignoredAttributes1
+        });
+
+        var bubo2 = new Bubo({
+            ignoredAttributes: ignoredAttributes2
+        });
+
+        var expected1 = getAttributeString(pt, ignoredAttributes1);
+        add(bubo1, bucket, pt);
+        expect(result.attr_str).equal(expected1);
+
+        var expected2 = getAttributeString(pt, ignoredAttributes2);
+        add(bubo2, bucket, pt);
+        expect(result.attr_str).equal(expected2);
+    });
+
     it.skip('profiles the memory use of adding 7 million points', function() {
         this.timeout(900000);
         var bubo = new Bubo(options);
