@@ -3,10 +3,10 @@ var _ = require('underscore');
 var expect = require('chai').expect;
 var util = require('util');
 
-function getAttributeString(pt, ignoredAttributes) {
+function getAttributeString(point, ignoredAttributes) {
     ignoredAttributes = ignoredAttributes || {};
     var keys = [];
-    _.each(pt, function(val, key) {
+    _.each(point, function(val, key) {
         if (!ignoredAttributes[key]) {
             keys.push(key);
         }
@@ -17,7 +17,7 @@ function getAttributeString(pt, ignoredAttributes) {
     var attrString = '';
     var comma = '';
     for (var tag = keys.length - 1; tag >= 0; tag--) {
-        attrString = keys[tag] + '=' + pt[keys[tag]] + comma + attrString;
+        attrString = keys[tag] + '=' + point[keys[tag]] + comma + attrString;
         comma = ',';
     }
 
@@ -26,22 +26,37 @@ function getAttributeString(pt, ignoredAttributes) {
 
 var result = {};
 
-function lookup(bubo, bucket, point) {
-    bubo.lookup_point(bucket, point, result);
-    return result;
+function add(bubo, bucket, point) {
+    return bubo.add(bucket, point, result);
+}
+
+function contains(bubo, bucket, point) {
+    return bubo.contains(bucket, point);
 }
 
 var options = {}
 
 describe('bubo', function() {
+    var point = {
+        name: 'cpu.system',
+        pop: 'SF',
+        host: 'foo.com',
+        time: new Date(),
+        time2: new Date(),
+        value: 100,
+        value2: 100,
+        value3: 100.999,
+        source_type: 'metric',
+    };
+
     it('initializes properly', function() {
         var bubo = new Bubo(options);
 
-        expect(bubo.lookup_point).is.a.function;
+        expect(bubo.add).is.a.function;
 
         expect(function() {
-            bubo.lookup_point({});
-        }).to.throw('LookupPoint: invalid arguments');
+            bubo.add({});
+        }).to.throw('Add: invalid arguments');
 
     });
 
@@ -50,144 +65,118 @@ describe('bubo', function() {
         bubo.test();
     });
 
-    it('handles lookup and remove correctly', function() {
+    it('handles add and remove correctly', function() {
         var bubo = new Bubo(options);
 
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
+        var expected = getAttributeString(point);
 
-        var expected = getAttributeString(pt);
-
-        // Lookup in different space-buckets combinations.
+        // add in different space-buckets combinations.
         // The 'found' should be false when the space-bucket is called first time.
 
-        var v = lookup(bubo, 'aaa', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.false;
+        var found = add(bubo, 'aaa', point);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.false;
 
-        v = lookup(bubo, 'bbb', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.false;
+        found = add(bubo, 'bbb', point);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.false;
 
-        v = lookup(bubo, 'ccc', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.false;
+        found = add(bubo, 'ccc', point);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.false;
 
         // The same calls should have found == true the second time.
-        v = lookup(bubo, 'aaa', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.true;
+        found = add(bubo, 'aaa', point);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.true;
 
-        v = lookup(bubo, 'bbb', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.true;
+        found = add(bubo, 'bbb', point);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.true;
 
-        v = lookup(bubo, 'ccc', pt);
-        expect(v.attr_str).equal(expected);
-        expect(v.found).to.be.true;
+        found = add(bubo, 'ccc', point);
+        expect(result.attr_str).equal(expected);
+        expect(found).to.be.true;
 
-        // modify pt and lookup. This should be false, and the attr_atr should differ from expected.
-        var pt2 = JSON.parse(JSON.stringify(pt));
-        pt2.pop = 'NY';
-        v = lookup(bubo, 'aaa', pt2);
-        expect(v.attr_str).not.equal(expected);
-        expect(v.found).to.be.false;
+        // modify point and add. This should be false, and the attr_atr should differ from expected.
+        var point2 = JSON.parse(JSON.stringify(point));
+        point2.pop = 'NY';
+        found = add(bubo, 'aaa', point2);
+        expect(result.attr_str).not.equal(expected);
+        expect(found).to.be.false;
 
     });
 
-    it('handles remove_bucket correctly', function() {
+    it('add without result works', function() {
         var bubo = new Bubo(options);
+        var bucket = 'add_no_result_test';
+        bubo.add(bucket, point);
 
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric',
-        };
+        expect(bubo.contains(bucket, point)).equal(true);
+    });
 
-        var v;
+    it('contains: checks if a point has been added without adding it', function() {
+        var bubo = new Bubo(options);
+        var bucket = 'contains_bucket';
 
-        /*
-        Create the point in these space-bucket combinations by performing a lookup:
-            s1,12
-            s1,22
-            s1,32
-            s1,42
-            s1.52
-            s2,42
-            s3,52
-        First time all are not found.
+        var found = contains(bubo, bucket, point);
+        expect(found).equal(false);
 
-        Now, remove_bucket(s1, 12), and lookup all again.
-        All but (s1,12) should be true.
+        found = contains(bubo, bucket, point);
+        expect(found).equal(false);
 
-        Now, remove_space(s1,32), and lookup again.
-        Since all buckets <= 32 should have been removed, and hence should be false.
-        */
+        found = add(bubo, bucket, point);
+        expect(found).equal(false);
 
-        v = lookup(bubo, 's1@12', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@22', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@32', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@42', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@52', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's2@42', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's3@52', pt);
-        expect(v.found).to.be.false;
+        found = contains(bubo, bucket, point);
+        expect(found).equal(true);
 
-        bubo.remove_bucket('s1@12');
+        found = contains(bubo, bucket, point);
+        expect(found).equal(true);
+    });
 
-        v = lookup(bubo, 's1@12', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@22', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@32', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@52', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's2@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's3@52', pt);
-        expect(v.found).to.be.true;
+    it('delete: removes a specified point', function() {
+        var bubo = new Bubo(options);
+        var bucket = 'delete_test';
 
-        // Use integer second param to ensure both integer and string are accepted.
-        bubo.remove_bucket('s1@32');
+        add(bubo, bucket, point);
 
-        v = lookup(bubo, 's1@12', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@22', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@32', pt);
-        expect(v.found).to.be.false;
-        v = lookup(bubo, 's1@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's1@52', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's2@42', pt);
-        expect(v.found).to.be.true;
-        v = lookup(bubo, 's3@52', pt);
-        expect(v.found).to.be.true;
+        expect(contains(bubo, bucket, point)).equal(true);
+
+        bubo.delete('delete_test', point);
+
+        expect(contains(bubo, bucket, point)).equal(false);
+    });
+
+    it('get_buckets', function() {
+        var bubo = new Bubo(options);
+        var initial_buckets = bubo.get_buckets();
+
+        expect(initial_buckets).deep.equal([]);
+
+        var bucket1 = 'bucket1';
+        var bucket2 = 'bucket2';
+        var bucket3 = 'bucket3';
+
+        add(bubo, bucket1, point);
+        add(bubo, bucket2, point);
+        add(bubo, bucket3, point);
+
+        var buckets = bubo.get_buckets().sort();
+
+        expect(buckets).deep.equal([bucket1, bucket2, bucket3]);
+    });
+
+    it('handles delete_bucket correctly', function() {
+        var bubo = new Bubo(options);
+        var bucket = 'delete_this_bucket';
+
+        var found = add(bubo, bucket, point);
+        expect(found).to.be.false;
+        expect(contains(bubo, bucket, point)).equal(true);
+
+        bubo.delete_bucket(bucket);
+        expect(contains(bubo, bucket, point)).equal(false);
     });
 
     it('returns appropriate stats', function() {
@@ -203,20 +192,7 @@ describe('bubo', function() {
         bubo.stats(s1);
         expect(s1.strings_table.num_tags).equal(0);
 
-        // [1]
-        var pt = {
-            name: 'cpu.system',
-            pop: 'SF',
-            host: 'foo.com',
-            time: new Date(),
-            time2: new Date(),
-            value: 100,
-            value2: 100,
-            value3: 100.999,
-            source_type: 'metric'
-        };
-
-        var v = lookup(bubo, 'spc@bkt', pt);
+        var found = add(bubo, 'spc@bkt', point);
         s1 = {};
         bubo.stats(s1);
 
@@ -226,12 +202,11 @@ describe('bubo', function() {
         expect(s1['spc@bkt'].blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1['spc@bkt'].blob_used_bytes).equal(13); // 1 byte for size, 6 x 2 bytes since all small numbers.
 
-        // [2] another point that reuses some strings.
-        pt = {
+        var point2 = {
             name: 'apple',
             pop: 'NY',
         };
-        v = lookup(bubo, 'spc@bkt', pt);
+        found = add(bubo, 'spc@bkt', point2);
         s1 = {};
         bubo.stats(s1);
 
@@ -241,6 +216,35 @@ describe('bubo', function() {
         expect(s1['spc@bkt'].attr_entries).equal(2);
         expect(s1['spc@bkt'].blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1['spc@bkt'].blob_used_bytes).equal(18); // 1 byte for size + 2 x 2 bytes = 5. already have 13, so total 18.
+    });
+
+    it('has an ignoredAttributes per Bubo', function() {
+        var bucket = 'ignored_attributes_bucket';
+        var ignoredAttributes1 = {
+            time: true
+        };
+
+        var ignoredAttributes2 = {
+            time: true,
+            pop: true,
+            name: true
+        };
+
+        var bubo1 = new Bubo({
+            ignoredAttributes: ignoredAttributes1
+        });
+
+        var bubo2 = new Bubo({
+            ignoredAttributes: ignoredAttributes2
+        });
+
+        var expected1 = getAttributeString(point, ignoredAttributes1);
+        add(bubo1, bucket, point);
+        expect(result.attr_str).equal(expected1);
+
+        var expected2 = getAttributeString(point, ignoredAttributes2);
+        add(bubo2, bucket, point);
+        expect(result.attr_str).equal(expected2);
     });
 
     it.skip('profiles the memory use of adding 7 million points', function() {
@@ -265,7 +269,7 @@ describe('bubo', function() {
         for (var i = 0; i < 7000000; i++) {
             pt.pop = 'SF' + i;
             pt.value2 = pt.value2 + (2* i);
-            lookup(bubo, 'test-space-1@421', pt);
+            add(bubo, 'test-space-1@421', pt);
             if (i % 1000000 === 0) {
                 s1 = {};
                 bubo.stats(s1);
@@ -297,8 +301,8 @@ describe('bubo', function() {
         };
 
         try {
-            lookup(bubo, 'big@data', point);
-            throw new Error('lookup should have failed');
+            add(bubo, 'big@data', point);
+            throw new Error('add should have failed');
         } catch (err) {
             expect(err.message).equal('point too big');
         }

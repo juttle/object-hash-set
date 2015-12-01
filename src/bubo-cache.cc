@@ -5,9 +5,9 @@
 #include "attrs-table.h"
 #include "persistent-string.h"
 
-BuboCache::Bucket::Bucket(const v8::Local<v8::String>& spaceBucket) {
-    const v8::String::Utf8Value s(spaceBucket);
-    spaceBucket_ = std::string(*s);
+std::string stdString(const v8::Local<v8::String>& bucket) {
+    const v8::String::Utf8Value s(bucket);
+    return std::string(*s);
 }
 
 BuboCache::BuboCache()
@@ -23,27 +23,44 @@ BuboCache::~BuboCache() {
     delete strings_table_;
 }
 
+void BuboCache::initialize(v8::Local<v8::Object> ignoredAttrs) {
+    ignored_attributes_.Reset(ignoredAttrs);
+}
 
-bool BuboCache::lookup(const v8::Local<v8::String>& spaceBucket,
+bool BuboCache::add(const v8::Local<v8::String>& bucket,
                        const v8::Local<v8::Object>& pt,
+                       bool should_get_attr_str,
                        v8::Local<v8::String>& attr_str,
                        int* error) {
-    Bucket key(spaceBucket);
+    std::string key = stdString(bucket);
     AttributesTable* at = NULL;
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it == bubo_cache_.end()) {
-        at = new AttributesTable(strings_table_);
+        at = new AttributesTable(strings_table_, &ignored_attributes_);
         bubo_cache_.insert(std::make_pair(key, at));
     } else {
         at = it->second;
     }
-    return at->lookup(pt, attr_str, error);
+    return at->add(pt, should_get_attr_str, attr_str, error);
+}
+
+bool BuboCache::contains(const v8::Local<v8::String>& bucket,
+                       const v8::Local<v8::Object>& pt,
+                       int* error) {
+    std::string key = stdString(bucket);
+    bubo_cache_t::iterator it = bubo_cache_.find(key);
+    if (it == bubo_cache_.end()) {
+        return false;
+    } else {
+        AttributesTable* at = it->second;
+        return at->contains(pt, error);
+    }
 }
 
 
-void BuboCache::remove(const v8::Local<v8::String>& spaceBucket,
+void BuboCache::remove(const v8::Local<v8::String>& bucket,
                        const v8::Local<v8::Object>& pt) {
-    Bucket key(spaceBucket);
+    std::string key = stdString(bucket);
 
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it != bubo_cache_.end()) {
@@ -51,47 +68,23 @@ void BuboCache::remove(const v8::Local<v8::String>& spaceBucket,
     }
 }
 
-long extractDay(const char* spaceBucket);
-char* extractSpace(const char* spaceBucket);
-
-long extractDay(const char* spaceBucket) {
-    const char* p = spaceBucket;
-    while(*(p++) != '@');
-    return strtol(p, NULL, 10);
+void BuboCache::delete_bucket(const v8::Local<v8::String>& bucket) {
+    const v8::String::Utf8Value s(bucket);
+    std::string str(*s);
+    bubo_cache_.erase(str);
 }
 
-int spaceLength(const char* spaceBucket) {
-    int i = 0;
-    while (spaceBucket[i] != '@') {
-        i++;
+v8::Local<v8::Array> BuboCache::get_buckets() {
+    v8::Local<v8::Array> keys = Nan::New<v8::Array>();
+    int k = 0;
+
+    for(bubo_cache_t::iterator it = bubo_cache_.begin(); it != bubo_cache_.end(); ++it) {
+        std::string key = it->first;
+        v8::Local<v8::String> key_str = Nan::New<v8::String>(key).ToLocalChecked();;
+        keys->Set(k++, key_str);
     }
-    return i;
-}
 
-void BuboCache::remove_bucket(const v8::Local<v8::String>& spaceBucket) {
-    // Note that the bucket is always a numeric value.
-    // We remove all buckets with numeric value less than or equal to the requested bucket.
-    const v8::String::Utf8Value s(spaceBucket);
-    const char* deleteSpace = *s;
-    int length = spaceLength(deleteSpace);
-    long deleteBucket = extractDay(deleteSpace);
-
-    for (bubo_cache_t::iterator it = bubo_cache_.begin(); it != bubo_cache_.end(); ) {
-        const char* storedString = it->first.spaceBucket_.c_str();
-
-        if (!strncmp(deleteSpace, storedString, length)) {
-            long storedBucket = extractDay(storedString);
-
-            if (storedBucket <= deleteBucket) {
-                delete it->second;
-                it = bubo_cache_.erase(it);
-            } else {
-                it++;
-            }
-        } else {
-            it++;
-        }
-    }
+    return keys;
 }
 
 void BuboCache::stats(v8::Local<v8::Object>& stats) const {
@@ -107,6 +100,6 @@ void BuboCache::stats(v8::Local<v8::Object>& stats) const {
         v8::Local<v8::Object> attr_stats = Nan::New<v8::Object>();
 
         it->second->stats(attr_stats);
-        Nan::Set(stats, Nan::New(it->first.spaceBucket_.c_str()).ToLocalChecked(), attr_stats);
+        Nan::Set(stats, Nan::New(it->first.c_str()).ToLocalChecked(), attr_stats);
     }
 }

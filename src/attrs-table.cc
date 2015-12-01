@@ -9,27 +9,42 @@
 static EntryToken* entryTokens[100];
 static const int MAX_BUFFER_SIZE = 16 << 10;
 
-AttributesTable::AttributesTable(StringsTable* strings_table)
-        : attributes_hash_set_(),
-          strings_table_(strings_table) {
-              for (int i = 0; i < 100; i++) {
-                  entryTokens[i] = new EntryToken();
-              }
-        }
+AttributesTable::AttributesTable(StringsTable* strings_table,
+                                 Nan::Persistent<v8::Object>* ignored_attributes)
+    : attributes_hash_set_(),
+      strings_table_(strings_table),
+      ignored_attributes_(ignored_attributes)
+{
+    for (int i = 0; i < 100; i++) {
+      entryTokens[i] = new EntryToken();
+    }
+}
 
 
-/* Return true if the point corresponding to the tags/tagnames is found */
-bool AttributesTable::lookup(const v8::Local<v8::Object>& pt,
+bool AttributesTable::add(const v8::Local<v8::Object>& pt, bool should_get_attr_str,
                              v8::Local<v8::String>& attr_str, int* error) {
     int entrylen = 0;
 
-    prepare_entry_buffer(pt, &entrylen, true, attr_str, error);
+    prepare_entry_buffer(pt, &entrylen, should_get_attr_str, attr_str, error);
 
     if (*error) {
         return false;
     }
 
     return !attributes_hash_set_.insert(entry_buf_, entrylen);
+}
+
+bool AttributesTable::contains(const v8::Local<v8::Object>& pt, int* error) {
+    int entrylen = 0;
+    v8::Local<v8::String> dummy;
+
+    prepare_entry_buffer(pt, &entrylen, false, dummy, error);
+
+    if (*error) {
+        return false;
+    }
+
+    return attributes_hash_set_.contains(entry_buf_, entrylen);
 }
 
 void AttributesTable::remove(const v8::Local<v8::Object>& pt) {
@@ -73,10 +88,11 @@ bool AttributesTable::prepare_entry_buffer(const v8::Local<v8::Object>& pt,
     for (u_int32_t i = 0; i < length; ++i) {
         v8::Local<v8::Value> key = Nan::Get(keys, i).ToLocalChecked();
         v8::Local<v8::String> key_str(key->ToString());
-        if (bubo_utils::is_ignored_attribute(key_str)) {
+        if (!ignored_attributes_->IsEmpty() && Nan::HasOwnProperty(Nan::New(*ignored_attributes_), key_str).FromJust()) {
             continue;
         }
-        v8::String::Utf8Value tag(key_str);
+
+        v8::String::Utf8Value tag(key);
         v8::String::Utf8Value val(Nan::Get(pt, key_str).ToLocalChecked());
 
         EntryToken* et = entryTokens[i];

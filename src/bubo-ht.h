@@ -102,6 +102,13 @@ public:
         return !found;
     }
 
+    inline bool contains(const BYTE* entry_buf, int entry_len) {
+        assert(entry_buf);
+        uint32_t idx = hash(entry_buf, entry_len) % table_size_;
+
+        return find_at(&table_[idx], entry_buf, entry_len);
+    }
+
     inline void erase(BYTE* val) {
         int len = bubo_utils::get_entry_len(val);
         uint32_t idx = hash(val, len) % table_size_;

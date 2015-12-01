@@ -20,9 +20,11 @@ private:
 
     NAN_METHOD(Initialize);
 
-    JS_METHOD_DECL(LookupPoint);
-    JS_METHOD_DECL(RemovePoint);
-    JS_METHOD_DECL(RemoveBucket);
+    JS_METHOD_DECL(Add);
+    JS_METHOD_DECL(Contains);
+    JS_METHOD_DECL(Delete);
+    JS_METHOD_DECL(DeleteBucket);
+    JS_METHOD_DECL(GetBuckets);
     JS_METHOD_DECL(Stats);
     JS_METHOD_DECL(Test);
 

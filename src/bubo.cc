@@ -22,7 +22,6 @@ NAN_METHOD(NewInstance) {
 
 NAN_METHOD(Bubo::New)
 {
-
     if (!info.IsConstructCall()) {
         return Nan::ThrowError("non-constructor invocation not supported");
     }
@@ -59,69 +58,100 @@ NAN_METHOD(Bubo::Initialize)
     Local<Value> ignoredVal = Nan::Get(opts, ignoredAttributes).ToLocalChecked();
     Local<Object> ignored = Nan::To<Object>(ignoredVal).ToLocalChecked();
 
-    bubo_utils::initialize(ignored);
+    cache_.initialize(ignored);
 }
 
-JS_METHOD(Bubo, LookupPoint)
+JS_METHOD(Bubo, Add)
 {
     Nan::HandleScope scope;
+    int num_arguments = info.Length();
 
-    if (info.Length() < 3) {
-        return Nan::ThrowError("LookupPoint: invalid arguments");
+    if (num_arguments < 2) {
+        return Nan::ThrowError("Add: invalid arguments");
     }
 
-    Local<String> spaceBucket = info[0].As<String>();
+    Local<String> bucket = info[0].As<String>();
     Local<Object> obj = info[1].As<Object>();
-    Local<Object> result = info[2].As<Object>();
 
     Local<String> attrs;
     int error_value = 0;
     int* error = &error_value;
-    bool found = cache_.lookup(spaceBucket, obj, attrs, error);
+    bool should_get_attr_str = num_arguments >= 3;
+    bool found = cache_.add(bucket, obj, should_get_attr_str, attrs, error);
 
     if (*error) {
         return Nan::ThrowError("point too big");
     }
 
-    static PersistentString founded("found");
     static PersistentString attr_str("attr_str");
 
-    Nan::Set(result, founded, Nan::New<Boolean>(found));
-    Nan::Set(result, attr_str, attrs);
+    if (should_get_attr_str) {
+        Local<Object> result = info[2].As<Object>();
+        Nan::Set(result, attr_str, attrs);
+    }
 
-    return;
+    info.GetReturnValue().Set(found);
 }
 
-
-JS_METHOD(Bubo, RemovePoint)
+JS_METHOD(Bubo, Contains)
 {
     Nan::HandleScope scope;
 
     if (info.Length() < 2) {
-        return Nan::ThrowError("RemovePoint: invalid arguments");
+        return Nan::ThrowError("Contains: invalid arguments");
     }
 
-    Local<String> spaceBucket = info[0].As<String>();
+    Local<String> bucket = info[0].As<String>();
     Local<Object> obj = info[1].As<Object>();
 
-    cache_.remove(spaceBucket, obj);
+    int error_value = 0;
+    int* error = &error_value;
+    bool found = cache_.contains(bucket, obj, error);
+    if (*error) {
+        return Nan::ThrowError("point too big");
+    }
+
+    info.GetReturnValue().Set(found);
+}
+
+
+JS_METHOD(Bubo, Delete)
+{
+    Nan::HandleScope scope;
+
+    if (info.Length() < 2) {
+        return Nan::ThrowError("Delete: invalid arguments");
+    }
+
+    Local<String> bucket = info[0].As<String>();
+    Local<Object> obj = info[1].As<Object>();
+
+    cache_.remove(bucket, obj);
 
     return;
 }
 
 
-JS_METHOD(Bubo, RemoveBucket)
+JS_METHOD(Bubo, DeleteBucket)
 {
     Nan::HandleScope scope;
 
     if (info.Length() < 1) {
-        return Nan::ThrowError("RemoveBucket: invalid arguments");
+        return Nan::ThrowError("DeleteBucket: invalid arguments");
     }
 
-    Local<String> spaceBucket = info[0].As<String>();
-    cache_.remove_bucket(spaceBucket);
+    Local<String> bucket = info[0].As<String>();
+    cache_.delete_bucket(bucket);
 
     return;
+}
+
+JS_METHOD(Bubo, GetBuckets) {
+    Nan::HandleScope scope;
+
+    v8::Local<v8::Array> buckets = cache_.get_buckets();
+
+    info.GetReturnValue().Set(buckets);
 }
 
 JS_METHOD(Bubo, Test)
@@ -158,9 +188,11 @@ Bubo::Init(Handle<Object> exports)
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Prototype
-    Nan::SetPrototypeMethod(tpl, "lookup_point", JS_METHOD_NAME(LookupPoint));
-    Nan::SetPrototypeMethod(tpl, "remove_point", JS_METHOD_NAME(RemovePoint));
-    Nan::SetPrototypeMethod(tpl, "remove_bucket", JS_METHOD_NAME(RemoveBucket));
+    Nan::SetPrototypeMethod(tpl, "add", JS_METHOD_NAME(Add));
+    Nan::SetPrototypeMethod(tpl, "contains", JS_METHOD_NAME(Contains));
+    Nan::SetPrototypeMethod(tpl, "delete", JS_METHOD_NAME(Delete));
+    Nan::SetPrototypeMethod(tpl, "delete_bucket", JS_METHOD_NAME(DeleteBucket));
+    Nan::SetPrototypeMethod(tpl, "get_buckets", JS_METHOD_NAME(GetBuckets));
     Nan::SetPrototypeMethod(tpl, "test", JS_METHOD_NAME(Test));
     Nan::SetPrototypeMethod(tpl, "stats", JS_METHOD_NAME(Stats));
 

@@ -23,8 +23,6 @@ void initialize(v8::Local<v8::Object> ignoredAttrs);
 
 void hex_out(const BYTE* data, int len, const char* hint=NULL);
 
-bool is_ignored_attribute(const v8::Local<v8::String>& attr);
-
 // Using Google's protobuffer encoding (https://github.com/google/protobuf)
 inline void encode_packed(uint32_t val, BYTE* out, int* outlen) {
     int length = 1;

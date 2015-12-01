@@ -11,10 +11,11 @@ class StringsTable;
 
 class AttributesTable {
 public:
-	AttributesTable(StringsTable* strings_table);
+	AttributesTable(StringsTable* strings_table, Nan::Persistent<v8::Object>* ignored_attributes);
     virtual ~AttributesTable();
 
-    bool lookup(const v8::Local<v8::Object>& pt, v8::Local<v8::String>& attr_str, int* error);
+	bool add(const v8::Local<v8::Object>& pt, bool should_get_attr_str, v8::Local<v8::String>& attr_str, int* error);
+	bool contains(const v8::Local<v8::Object>& pt, int* error);
     void remove(const v8::Local<v8::Object>& pt);
     void stats(v8::Local<v8::Object>& stats) const;
 
@@ -31,7 +32,7 @@ public:
      * Optionally, one can ask for the attr_str to be filled in with the tags and tag_names.
      *
      * @pt: The javascript object whose tag/val members are added to the entry buffer.
-     *      (note: Certain attributes are ignored (based on bubo_utils::is_ignored_attribute()))
+     *      (note: Certain attributes may be ignored)
      * @entry_len: length of the buffer being prepared in bytes
      * @get_attr_str: boolean specifying whether we want attr_str to be filled in.
      * @attr_str: optional v8::String reference to be filled with 'tag1=tagname1,tag2=tagname2,..'
@@ -50,6 +51,7 @@ public:
 protected:
 	BuboHashSet<BytePtrHash, BytePtrEqual> attributes_hash_set_;
 	StringsTable* strings_table_;
+	Nan::Persistent<v8::Object>* ignored_attributes_;
 
 	BYTE entry_buf_[16 << 10] __attribute__ ((aligned (8)));
 };
