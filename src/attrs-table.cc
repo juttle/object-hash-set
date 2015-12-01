@@ -9,14 +9,16 @@
 static EntryToken* entryTokens[100];
 static const int MAX_BUFFER_SIZE = 16 << 10;
 
-AttributesTable::AttributesTable(StringsTable* strings_table, v8::Handle<v8::Object> ignored_attributes)
-        : attributes_hash_set_(),
-          strings_table_(strings_table) {
-              ignored_attributes_ = ignored_attributes;
-              for (int i = 0; i < 100; i++) {
-                  entryTokens[i] = new EntryToken();
-              }
-        }
+AttributesTable::AttributesTable(StringsTable* strings_table,
+                                 Nan::Persistent<v8::Object>* ignored_attributes)
+    : attributes_hash_set_(),
+      strings_table_(strings_table),
+      ignored_attributes_(ignored_attributes)
+{
+    for (int i = 0; i < 100; i++) {
+      entryTokens[i] = new EntryToken();
+    }
+}
 
 
 bool AttributesTable::add(const v8::Local<v8::Object>& pt, bool should_get_attr_str,
@@ -86,11 +88,11 @@ bool AttributesTable::prepare_entry_buffer(const v8::Local<v8::Object>& pt,
     for (u_int32_t i = 0; i < length; ++i) {
         v8::Local<v8::Value> key = Nan::Get(keys, i).ToLocalChecked();
         v8::Local<v8::String> key_str(key->ToString());
-        if (!ignored_attributes_.IsEmpty() && Nan::HasOwnProperty(ignored_attributes_, key_str).FromJust()) {
+        if (!ignored_attributes_->IsEmpty() && Nan::HasOwnProperty(Nan::New(*ignored_attributes_), key_str).FromJust()) {
             continue;
         }
 
-        v8::String::Utf8Value tag(key_str);
+        v8::String::Utf8Value tag(key);
         v8::String::Utf8Value val(Nan::Get(pt, key_str).ToLocalChecked());
 
         EntryToken* et = entryTokens[i];

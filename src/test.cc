@@ -9,7 +9,7 @@
 #include "attrs-table.h"
 #include "bubo-ht.h"
 
-static v8::Handle<v8::Object> ignored_attributes;
+static Nan::Persistent<v8::Object> ignored_attributes;
 
 static void test_hash_function_same_input() {
     BYTE a[5];
@@ -290,7 +290,7 @@ static void test_strings_table_sizes() {
 static void test_strings_table_entry_buf_basic() {
     // tests if basic functionality of prepare_entry_buffer() is allright.
     StringsTable* st = new StringsTable();
-    AttributesTable* at = new AttributesTable(st, ignored_attributes);
+    AttributesTable* at = new AttributesTable(st, &ignored_attributes);
 
     v8::Local<v8::Object> pt = Nan::New<v8::Object>();
     Nan::Set(pt, Nan::New("proxy").ToLocalChecked(), Nan::New("sfdc1").ToLocalChecked());              // tag seq 1 -> position 3 sorted.
@@ -326,7 +326,7 @@ static void test_strings_table_entry_buf_basic() {
 static void test_strings_table_entry_buf_repeated() {
     // tests if functionality of prepare_entry_buffer() is allright when things repeat.
     StringsTable* st = new StringsTable();
-    AttributesTable* at = new AttributesTable(st, ignored_attributes);
+    AttributesTable* at = new AttributesTable(st, &ignored_attributes);
 
     int buflen = 0;
 
@@ -372,7 +372,7 @@ static void test_strings_table_entry_buf_repeated() {
 static void test_strings_table_entry_buf_large_seq() {
     // Test for sequence numbers larger than 127 (these will require more than 1 byte)
     StringsTable* st = new StringsTable();
-    AttributesTable* at = new AttributesTable(st, ignored_attributes);
+    AttributesTable* at = new AttributesTable(st, &ignored_attributes);
 
     v8::Local<v8::String> tbase = Nan::New("mytag").ToLocalChecked();
     v8::Local<v8::String> vbase = Nan::New("myval").ToLocalChecked();
@@ -422,7 +422,7 @@ static void test_strings_table_entry_buf_large_seq() {
 void test_strings_table_wide_point() {
     // tests if prepare_entry_buffer() works with relatively wide inputs.
     StringsTable* st = new StringsTable();
-    AttributesTable* at = new AttributesTable(st, ignored_attributes);
+    AttributesTable* at = new AttributesTable(st, &ignored_attributes);
 
     BYTE* buf = NULL;
     int buflen = 0;
@@ -585,5 +585,4 @@ void testall() {
 
     test_hash_set();
     test_hash_set_add_many_erase();
-
 }
