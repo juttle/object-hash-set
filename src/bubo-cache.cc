@@ -75,7 +75,7 @@ void BuboCache::delete_bucket(const v8::Local<v8::String>& bucket) {
 }
 
 v8::Local<v8::Array> BuboCache::get_buckets() {
-    v8::Local<v8::Array> keys = v8::Array::New();
+    v8::Local<v8::Array> keys = Nan::New<v8::Array>();
     int k = 0;
 
     for(bubo_cache_t::iterator it = bubo_cache_.begin(); it != bubo_cache_.end(); ++it) {
