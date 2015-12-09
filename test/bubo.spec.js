@@ -4,10 +4,10 @@ var expect = require('chai').expect;
 var util = require('util');
 
 function getAttributeString(point, ignoredAttributes) {
-    ignoredAttributes = ignoredAttributes || {};
+    ignoredAttributes = ignoredAttributes || [];
     var keys = [];
     _.each(point, function(val, key) {
-        if (!ignoredAttributes[key]) {
+        if (!_.contains(ignoredAttributes, key)) {
             keys.push(key);
         }
     });
@@ -181,11 +181,7 @@ describe('bubo', function() {
 
     it('returns appropriate stats', function() {
         var bubo = new Bubo({
-            ignoredAttributes: {
-                time: true,
-                value: true,
-                source_type: true
-            }
+            ignoredAttributes: ['time', 'value', 'source_type']
         });
 
         var s1 = {};
@@ -220,15 +216,9 @@ describe('bubo', function() {
 
     it('has an ignoredAttributes per Bubo', function() {
         var bucket = 'ignored_attributes_bucket';
-        var ignoredAttributes1 = {
-            time: true
-        };
+        var ignoredAttributes1 = ['time'];
 
-        var ignoredAttributes2 = {
-            time: true,
-            pop: true,
-            name: true
-        };
+        var ignoredAttributes2 = ['time', 'pop', 'name'];
 
         var bubo1 = new Bubo({
             ignoredAttributes: ignoredAttributes1

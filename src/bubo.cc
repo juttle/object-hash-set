@@ -55,8 +55,19 @@ NAN_METHOD(Bubo::Initialize)
         return;
     }
 
-    Local<Value> ignoredVal = Nan::Get(opts, ignoredAttributes).ToLocalChecked();
-    Local<Object> ignored = Nan::To<Object>(ignoredVal).ToLocalChecked();
+    Local<Value> ignored_value = Nan::Get(opts, ignoredAttributes).ToLocalChecked();
+    Local<Object> ignored_array = Nan::To<Object>(ignored_value).ToLocalChecked();
+    std::vector<std::string> ignored;
+    uint32_t i = 0;
+    v8::Local<v8::Value> ignored_value_string = Nan::Get(ignored_array, i).ToLocalChecked();
+    while (!ignored_value_string->IsUndefined()) {
+        v8::Local<v8::String> ignored_string(ignored_value_string->ToString());
+        v8::String::Utf8Value ignored_utf8_value(ignored_string);
+        std::string ignored_std_str(*ignored_utf8_value);
+
+        ignored.push_back(ignored_std_str);
+        ignored_value_string = Nan::Get(ignored_array, ++i).ToLocalChecked();
+    }
 
     cache_.initialize(ignored);
 }
