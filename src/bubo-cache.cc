@@ -23,8 +23,8 @@ BuboCache::~BuboCache() {
     delete strings_table_;
 }
 
-void BuboCache::initialize(v8::Local<v8::Object> ignoredAttrs) {
-    ignored_attributes_.Reset(ignoredAttrs);
+void BuboCache::initialize(const std::vector<std::string>& ignoredAttrs) {
+    ignored_attributes_ = ignoredAttrs;
 }
 
 bool BuboCache::add(const v8::Local<v8::String>& bucket,

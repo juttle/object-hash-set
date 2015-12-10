@@ -19,7 +19,7 @@ struct EntryToken {
 
 namespace bubo_utils {
 
-void initialize(v8::Local<v8::Object> ignoredAttrs);
+void initialize(std::vector<std::string> ignoredAttrs);
 
 void hex_out(const BYTE* data, int len, const char* hint=NULL);
 

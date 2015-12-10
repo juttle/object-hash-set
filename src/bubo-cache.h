@@ -14,7 +14,7 @@ public:
     BuboCache();
     virtual ~BuboCache();
 
-    void initialize(v8::Local<v8::Object> ignoredAttrs);
+    void initialize(const std::vector<std::string>& ignoredAttrs);
 
     bool add(const v8::Local<v8::String>& bucket,
                 const v8::Local<v8::Object>& pt,
@@ -39,5 +39,5 @@ protected:
     typedef std::unordered_map<std::string, AttributesTable*> bubo_cache_t;
     bubo_cache_t bubo_cache_;
     StringsTable* strings_table_;
-    Nan::Persistent<v8::Object> ignored_attributes_;
+    std::vector<std::string> ignored_attributes_;
 };

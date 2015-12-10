@@ -15,9 +15,11 @@ NAN_METHOD(NewInstance) {
     const unsigned argc = 1;
     Local<Value> argv[argc] = {info[0]};
     Local<Function> cons = Nan::New<Function>(Bubo::constructor);
-    Local<Object> instance = Nan::NewInstance(cons, argc, argv).ToLocalChecked();
+    Nan::MaybeLocal<Object> instance = Nan::NewInstance(cons, argc, argv);
 
-    info.GetReturnValue().Set(instance);
+    if (! instance.IsEmpty()) {
+        info.GetReturnValue().Set(instance.ToLocalChecked());
+    }
 }
 
 NAN_METHOD(Bubo::New)
@@ -30,7 +32,6 @@ NAN_METHOD(Bubo::New)
     obj->Wrap(info.This());
 
     obj->Initialize(info);
-
     info.GetReturnValue().Set(info.This());
 }
 
@@ -55,8 +56,20 @@ NAN_METHOD(Bubo::Initialize)
         return;
     }
 
-    Local<Value> ignoredVal = Nan::Get(opts, ignoredAttributes).ToLocalChecked();
-    Local<Object> ignored = Nan::To<Object>(ignoredVal).ToLocalChecked();
+    Local<Value> ignored_value = Nan::Get(opts, ignoredAttributes).ToLocalChecked();
+    if (! ignored_value->IsArray()) {
+        return Nan::ThrowError("ignoredAttributes must be an array");
+    }
+    Local<Array> ignored_array = Nan::To<Object>(ignored_value).ToLocalChecked().As<Array>();
+    std::vector<std::string> ignored;
+    for (uint32_t i = 0; i < ignored_array->Length(); ++i) {
+        v8::Local<v8::Value> ignored_value_string = Nan::Get(ignored_array, i).ToLocalChecked();
+        v8::Local<v8::String> ignored_string(ignored_value_string->ToString());
+        v8::String::Utf8Value ignored_utf8_value(ignored_string);
+        std::string ignored_std_str(*ignored_utf8_value);
+
+        ignored.push_back(ignored_std_str);
+    }
 
     cache_.initialize(ignored);
 }

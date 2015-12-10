@@ -9,7 +9,7 @@
 #include "attrs-table.h"
 #include "bubo-ht.h"
 
-static Nan::Persistent<v8::Object> ignored_attributes;
+static std::vector<std::string> ignored_attributes;
 
 static void test_hash_function_same_input() {
     BYTE a[5];
