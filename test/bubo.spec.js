@@ -237,6 +237,13 @@ describe('bubo', function() {
         expect(result.attr_str).equal(expected2);
     });
 
+    it('rejects ignoredAttributes that is not an array', function() {
+        expect(function() { return new Bubo({ignoredAttributes: []}); }).to.not.throw(Error);
+        expect(function() { return new Bubo({ignoredAttributes: 1}); }).to.throw(Error);
+        expect(function() { return new Bubo({ignoredAttributes: "ignoreme"}); }).to.throw(Error);
+        expect(function() { return new Bubo({ignoredAttributes: {}}); }).to.throw(Error);
+    });
+
     it.skip('profiles the memory use of adding 7 million points', function() {
         this.timeout(900000);
         var bubo = new Bubo(options);
