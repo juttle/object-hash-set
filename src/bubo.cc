@@ -15,7 +15,7 @@ NAN_METHOD(NewInstance) {
     const unsigned argc = 1;
     Local<Value> argv[argc] = {info[0]};
     Local<Function> cons = Nan::New<Function>(Bubo::constructor);
-    MaybeLocal<Object> instance = Nan::NewInstance(cons, argc, argv);
+    Nan::MaybeLocal<Object> instance = Nan::NewInstance(cons, argc, argv);
 
     if (! instance.IsEmpty()) {
         info.GetReturnValue().Set(instance.ToLocalChecked());
