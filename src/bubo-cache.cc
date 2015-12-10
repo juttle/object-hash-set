@@ -23,7 +23,7 @@ BuboCache::~BuboCache() {
     delete strings_table_;
 }
 
-void BuboCache::initialize(std::vector<std::string> ignoredAttrs) {
+void BuboCache::initialize(const std::vector<std::string>& ignoredAttrs) {
     ignored_attributes_ = ignoredAttrs;
 }
 
@@ -36,7 +36,7 @@ bool BuboCache::add(const v8::Local<v8::String>& bucket,
     AttributesTable* at = NULL;
     bubo_cache_t::iterator it = bubo_cache_.find(key);
     if (it == bubo_cache_.end()) {
-        at = new AttributesTable(strings_table_, ignored_attributes_);
+        at = new AttributesTable(strings_table_, &ignored_attributes_);
         bubo_cache_.insert(std::make_pair(key, at));
     } else {
         at = it->second;

@@ -10,7 +10,7 @@ static EntryToken* entryTokens[100];
 static const int MAX_BUFFER_SIZE = 16 << 10;
 
 AttributesTable::AttributesTable(StringsTable* strings_table,
-                                 std::vector<std::string> ignored_attributes)
+                                 std::vector<std::string> *ignored_attributes)
     : attributes_hash_set_(),
       strings_table_(strings_table),
       ignored_attributes_(ignored_attributes)
@@ -70,8 +70,8 @@ char* mystrcat( char* dest, const char* src, int* total_buffer_size ) {
      return --dest;
 }
 
-inline bool _contains(std::vector<std::string> vector, std::string string) {
-    return std::find(vector.begin(), vector.end(), string) != vector.end();
+inline bool _contains(std::vector<std::string> *vector, std::string string) {
+    return std::find(vector->begin(), vector->end(), string) != vector->end();
 }
 
 /* Returns true if all the tags and tag-names are found in the internal maps */
@@ -95,7 +95,7 @@ bool AttributesTable::prepare_entry_buffer(const v8::Local<v8::Object>& pt,
         v8::String::Utf8Value tag(key);
         std::string tag_str(*tag);
 
-        if (!ignored_attributes_.empty() && _contains(ignored_attributes_, tag_str)) {
+        if (ignored_attributes_ != NULL && _contains(ignored_attributes_, tag_str)) {
             continue;
         }
 

@@ -14,7 +14,7 @@ public:
     BuboCache();
     virtual ~BuboCache();
 
-    void initialize(std::vector<std::string> ignoredAttrs);
+    void initialize(const std::vector<std::string>& ignoredAttrs);
 
     bool add(const v8::Local<v8::String>& bucket,
                 const v8::Local<v8::Object>& pt,

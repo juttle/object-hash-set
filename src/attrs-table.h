@@ -11,7 +11,7 @@ class StringsTable;
 
 class AttributesTable {
 public:
-	AttributesTable(StringsTable* strings_table, std::vector<std::string> ignored_attributes);
+	AttributesTable(StringsTable* strings_table, std::vector<std::string> *ignored_attributes);
     virtual ~AttributesTable();
 
 	bool add(const v8::Local<v8::Object>& pt, bool should_get_attr_str, v8::Local<v8::String>& attr_str, int* error);
@@ -51,7 +51,7 @@ public:
 protected:
 	BuboHashSet<BytePtrHash, BytePtrEqual> attributes_hash_set_;
 	StringsTable* strings_table_;
-	std::vector<std::string> ignored_attributes_;
+	std::vector<std::string>* ignored_attributes_ = NULL;
 
 	BYTE entry_buf_[16 << 10] __attribute__ ((aligned (8)));
 };
