@@ -45,6 +45,8 @@ Bubo::~Bubo()
 
 NAN_METHOD(Bubo::Initialize)
 {
+    strings_table_ = new StringsTable();
+    attrs_table_ = new AttributesTable(strings_table_);
     if (info[0]->IsUndefined()) {
         return;
     }
@@ -61,17 +63,16 @@ NAN_METHOD(Bubo::Initialize)
         return Nan::ThrowError("ignoredAttributes must be an array");
     }
     Local<Array> ignored_array = Nan::To<Object>(ignored_value).ToLocalChecked().As<Array>();
-    std::vector<std::string> ignored;
     for (uint32_t i = 0; i < ignored_array->Length(); ++i) {
         v8::Local<v8::Value> ignored_value_string = Nan::Get(ignored_array, i).ToLocalChecked();
         v8::Local<v8::String> ignored_string(ignored_value_string->ToString());
         v8::String::Utf8Value ignored_utf8_value(ignored_string);
         std::string ignored_std_str(*ignored_utf8_value);
 
-        ignored.push_back(ignored_std_str);
+        ignored_attributes_.push_back(ignored_std_str);
     }
 
-    cache_.initialize(ignored);
+    attrs_table_->set_ignored_attributes(&ignored_attributes_);
 }
 
 JS_METHOD(Bubo, Add)
@@ -79,18 +80,18 @@ JS_METHOD(Bubo, Add)
     Nan::HandleScope scope;
     int num_arguments = info.Length();
 
-    if (num_arguments < 2) {
+    if (num_arguments < 1) {
         return Nan::ThrowError("Add: invalid arguments");
     }
 
-    Local<String> bucket = info[0].As<String>();
-    Local<Object> obj = info[1].As<Object>();
+    Local<Object> point = info[0].As<Object>();
 
     Local<String> attrs;
     int error_value = 0;
     int* error = &error_value;
-    bool should_get_attr_str = num_arguments >= 3;
-    bool found = cache_.add(bucket, obj, should_get_attr_str, attrs, error);
+    bool should_get_attr_str = (num_arguments >= 2);
+
+    bool found = attrs_table_->add(point, should_get_attr_str, attrs, error);
 
     if (*error) {
         return Nan::ThrowError("point too big");
@@ -99,7 +100,7 @@ JS_METHOD(Bubo, Add)
     static PersistentString attr_str("attr_str");
 
     if (should_get_attr_str) {
-        Local<Object> result = info[2].As<Object>();
+        Local<Object> result = info[1].As<Object>();
         Nan::Set(result, attr_str, attrs);
     }
 
@@ -110,16 +111,15 @@ JS_METHOD(Bubo, Contains)
 {
     Nan::HandleScope scope;
 
-    if (info.Length() < 2) {
+    if (info.Length() < 1) {
         return Nan::ThrowError("Contains: invalid arguments");
     }
 
-    Local<String> bucket = info[0].As<String>();
-    Local<Object> obj = info[1].As<Object>();
+    Local<Object> point = info[0].As<Object>();
 
     int error_value = 0;
     int* error = &error_value;
-    bool found = cache_.contains(bucket, obj, error);
+    bool found = attrs_table_->contains(point, error);
     if (*error) {
         return Nan::ThrowError("point too big");
     }
@@ -132,39 +132,15 @@ JS_METHOD(Bubo, Delete)
 {
     Nan::HandleScope scope;
 
-    if (info.Length() < 2) {
+    if (info.Length() < 1) {
         return Nan::ThrowError("Delete: invalid arguments");
     }
 
-    Local<String> bucket = info[0].As<String>();
-    Local<Object> obj = info[1].As<Object>();
+    Local<Object> point = info[0].As<Object>();
 
-    cache_.remove(bucket, obj);
-
-    return;
-}
-
-
-JS_METHOD(Bubo, DeleteBucket)
-{
-    Nan::HandleScope scope;
-
-    if (info.Length() < 1) {
-        return Nan::ThrowError("DeleteBucket: invalid arguments");
-    }
-
-    Local<String> bucket = info[0].As<String>();
-    cache_.delete_bucket(bucket);
+    attrs_table_->remove(point);
 
     return;
-}
-
-JS_METHOD(Bubo, GetBuckets) {
-    Nan::HandleScope scope;
-
-    v8::Local<v8::Array> buckets = cache_.get_buckets();
-
-    info.GetReturnValue().Set(buckets);
 }
 
 JS_METHOD(Bubo, Test)
@@ -185,7 +161,17 @@ JS_METHOD(Bubo, Stats)
     }
 
     Local<Object> stats = info[0].As<Object>();
-    cache_.stats(stats);
+    static PersistentString strings_table("strings_table");
+
+    v8::Local<v8::Object> strings_stats = Nan::New<v8::Object>();
+    strings_table_->stats(strings_stats);
+    Nan::Set(stats, strings_table, strings_stats);
+
+    static PersistentString attrs_table("attrs_table");
+
+    v8::Local<v8::Object> attr_stats = Nan::New<v8::Object>();
+    attrs_table_->stats(attr_stats);
+    Nan::Set(stats, attrs_table, attr_stats);
 
     return;
 }
@@ -204,8 +190,6 @@ Bubo::Init(Handle<Object> exports)
     Nan::SetPrototypeMethod(tpl, "add", JS_METHOD_NAME(Add));
     Nan::SetPrototypeMethod(tpl, "contains", JS_METHOD_NAME(Contains));
     Nan::SetPrototypeMethod(tpl, "delete", JS_METHOD_NAME(Delete));
-    Nan::SetPrototypeMethod(tpl, "delete_bucket", JS_METHOD_NAME(DeleteBucket));
-    Nan::SetPrototypeMethod(tpl, "get_buckets", JS_METHOD_NAME(GetBuckets));
     Nan::SetPrototypeMethod(tpl, "test", JS_METHOD_NAME(Test));
     Nan::SetPrototypeMethod(tpl, "stats", JS_METHOD_NAME(Stats));
 

@@ -5,7 +5,6 @@
       "sources": [
         "src/attrs-table.cc",
         "src/blob-store.cc",
-        "src/bubo-cache.cc",
         "src/bubo-types.cc",
         "src/utils.cc",
         "src/bubo.cc",

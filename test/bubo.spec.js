@@ -26,15 +26,15 @@ function getAttributeString(point, ignoredAttributes) {
 
 var result = {};
 
-function add(bubo, bucket, point) {
-    return bubo.add(bucket, point, result);
+function add(bubo, point) {
+    return bubo.add(point, result);
 }
 
-function contains(bubo, bucket, point) {
-    return bubo.contains(bucket, point);
+function contains(bubo, point) {
+    return bubo.contains(point);
 }
 
-var options = {}
+var options = {};
 
 describe('bubo', function() {
     var point = {
@@ -55,7 +55,7 @@ describe('bubo', function() {
         expect(bubo.add).is.a.function;
 
         expect(function() {
-            bubo.add({});
+            bubo.add();
         }).to.throw('Add: invalid arguments');
 
     });
@@ -69,114 +69,58 @@ describe('bubo', function() {
         var bubo = new Bubo(options);
 
         var expected = getAttributeString(point);
-
-        // add in different space-buckets combinations.
-        // The 'found' should be false when the space-bucket is called first time.
-
-        var found = add(bubo, 'aaa', point);
+        var found = add(bubo, point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.false;
 
-        found = add(bubo, 'bbb', point);
-        expect(result.attr_str).equal(expected);
-        expect(found).to.be.false;
-
-        found = add(bubo, 'ccc', point);
-        expect(result.attr_str).equal(expected);
-        expect(found).to.be.false;
-
-        // The same calls should have found == true the second time.
-        found = add(bubo, 'aaa', point);
-        expect(result.attr_str).equal(expected);
-        expect(found).to.be.true;
-
-        found = add(bubo, 'bbb', point);
-        expect(result.attr_str).equal(expected);
-        expect(found).to.be.true;
-
-        found = add(bubo, 'ccc', point);
+        found = add(bubo, point);
         expect(result.attr_str).equal(expected);
         expect(found).to.be.true;
 
         // modify point and add. This should be false, and the attr_atr should differ from expected.
         var point2 = JSON.parse(JSON.stringify(point));
         point2.pop = 'NY';
-        found = add(bubo, 'aaa', point2);
+        found = add(bubo, point2);
         expect(result.attr_str).not.equal(expected);
         expect(found).to.be.false;
-
     });
 
     it('add without result works', function() {
         var bubo = new Bubo(options);
-        var bucket = 'add_no_result_test';
-        bubo.add(bucket, point);
+        bubo.add(point);
 
-        expect(bubo.contains(bucket, point)).equal(true);
+        expect(bubo.contains(point)).equal(true);
     });
 
     it('contains: checks if a point has been added without adding it', function() {
         var bubo = new Bubo(options);
-        var bucket = 'contains_bucket';
 
-        var found = contains(bubo, bucket, point);
+        var found = contains(bubo, point);
         expect(found).equal(false);
 
-        found = contains(bubo, bucket, point);
+        found = contains(bubo, point);
         expect(found).equal(false);
 
-        found = add(bubo, bucket, point);
+        found = add(bubo, point);
         expect(found).equal(false);
 
-        found = contains(bubo, bucket, point);
+        found = contains(bubo, point);
         expect(found).equal(true);
 
-        found = contains(bubo, bucket, point);
+        found = contains(bubo, point);
         expect(found).equal(true);
     });
 
     it('delete: removes a specified point', function() {
         var bubo = new Bubo(options);
-        var bucket = 'delete_test';
 
-        add(bubo, bucket, point);
+        add(bubo, point);
 
-        expect(contains(bubo, bucket, point)).equal(true);
+        expect(contains(bubo, point)).equal(true);
 
-        bubo.delete('delete_test', point);
+        bubo.delete(point);
 
-        expect(contains(bubo, bucket, point)).equal(false);
-    });
-
-    it('get_buckets', function() {
-        var bubo = new Bubo(options);
-        var initial_buckets = bubo.get_buckets();
-
-        expect(initial_buckets).deep.equal([]);
-
-        var bucket1 = 'bucket1';
-        var bucket2 = 'bucket2';
-        var bucket3 = 'bucket3';
-
-        add(bubo, bucket1, point);
-        add(bubo, bucket2, point);
-        add(bubo, bucket3, point);
-
-        var buckets = bubo.get_buckets().sort();
-
-        expect(buckets).deep.equal([bucket1, bucket2, bucket3]);
-    });
-
-    it('handles delete_bucket correctly', function() {
-        var bubo = new Bubo(options);
-        var bucket = 'delete_this_bucket';
-
-        var found = add(bubo, bucket, point);
-        expect(found).to.be.false;
-        expect(contains(bubo, bucket, point)).equal(true);
-
-        bubo.delete_bucket(bucket);
-        expect(contains(bubo, bucket, point)).equal(false);
+        expect(contains(bubo, point)).equal(false);
     });
 
     it('returns appropriate stats', function() {
@@ -188,34 +132,33 @@ describe('bubo', function() {
         bubo.stats(s1);
         expect(s1.strings_table.num_tags).equal(0);
 
-        var found = add(bubo, 'spc@bkt', point);
+        var found = add(bubo, point);
         s1 = {};
         bubo.stats(s1);
 
         expect(s1.strings_table.num_tags).equal(6); // 9 attributes. ignoring time, value, and source_type, 6.
         expect(s1.strings_table.pop).equal(1);
-        expect(s1['spc@bkt'].attr_entries).equal(1);
-        expect(s1['spc@bkt'].blob_allocated_bytes).equal(20971520); //20MB default size
-        expect(s1['spc@bkt'].blob_used_bytes).equal(13); // 1 byte for size, 6 x 2 bytes since all small numbers.
+        expect(s1.attrs_table.attr_entries).equal(1);
+        expect(s1.attrs_table.blob_allocated_bytes).equal(20971520); //20MB default size
+        expect(s1.attrs_table.blob_used_bytes).equal(13); // 1 byte for size, 6 x 2 bytes since all small numbers.
 
         var point2 = {
             name: 'apple',
             pop: 'NY',
         };
-        found = add(bubo, 'spc@bkt', point2);
+        found = add(bubo, point2);
         s1 = {};
         bubo.stats(s1);
 
         expect(s1.strings_table.num_tags).equal(6); // no new tags. should be same.
         expect(s1.strings_table.name).equal(2);
         expect(s1.strings_table.pop).equal(2);
-        expect(s1['spc@bkt'].attr_entries).equal(2);
-        expect(s1['spc@bkt'].blob_allocated_bytes).equal(20971520); //20MB default size
-        expect(s1['spc@bkt'].blob_used_bytes).equal(18); // 1 byte for size + 2 x 2 bytes = 5. already have 13, so total 18.
+        expect(s1.attrs_table.attr_entries).equal(2);
+        expect(s1.attrs_table.blob_allocated_bytes).equal(20971520); //20MB default size
+        expect(s1.attrs_table.blob_used_bytes).equal(18); // 1 byte for size + 2 x 2 bytes = 5. already have 13, so total 18.
     });
 
     it('has an ignoredAttributes per Bubo', function() {
-        var bucket = 'ignored_attributes_bucket';
         var ignoredAttributes1 = ['time'];
 
         var ignoredAttributes2 = ['time', 'pop', 'name'];
@@ -229,11 +172,11 @@ describe('bubo', function() {
         });
 
         var expected1 = getAttributeString(point, ignoredAttributes1);
-        add(bubo1, bucket, point);
+        add(bubo1, point);
         expect(result.attr_str).equal(expected1);
 
         var expected2 = getAttributeString(point, ignoredAttributes2);
-        add(bubo2, bucket, point);
+        add(bubo2, point);
         expect(result.attr_str).equal(expected2);
     });
 
@@ -266,7 +209,7 @@ describe('bubo', function() {
         for (var i = 0; i < 7000000; i++) {
             pt.pop = 'SF' + i;
             pt.value2 = pt.value2 + (2* i);
-            add(bubo, 'test-space-1@421', pt);
+            add(bubo, pt);
             if (i % 1000000 === 0) {
                 s1 = {};
                 bubo.stats(s1);
@@ -298,7 +241,7 @@ describe('bubo', function() {
         };
 
         try {
-            add(bubo, 'big@data', point);
+            add(bubo, point);
             throw new Error('add should have failed');
         } catch (err) {
             expect(err.message).equal('point too big');

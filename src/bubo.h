@@ -3,7 +3,8 @@
 #include "node.h"
 #include "nan.h"
 #include "js-method.h"
-#include "bubo-cache.h"
+#include "attrs-table.h"
+#include "strings-table.h"
 
 #include <unordered_set>
 
@@ -23,10 +24,10 @@ private:
     JS_METHOD_DECL(Add);
     JS_METHOD_DECL(Contains);
     JS_METHOD_DECL(Delete);
-    JS_METHOD_DECL(DeleteBucket);
-    JS_METHOD_DECL(GetBuckets);
     JS_METHOD_DECL(Stats);
     JS_METHOD_DECL(Test);
 
-	BuboCache cache_;
+    AttributesTable* attrs_table_;
+    StringsTable* strings_table_;
+    std::vector<std::string> ignored_attributes_;
 };

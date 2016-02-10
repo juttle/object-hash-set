@@ -9,15 +9,17 @@
 static EntryToken* entryTokens[100];
 static const int MAX_BUFFER_SIZE = 16 << 10;
 
-AttributesTable::AttributesTable(StringsTable* strings_table,
-                                 std::vector<std::string> *ignored_attributes)
+AttributesTable::AttributesTable(StringsTable* strings_table)
     : attributes_hash_set_(),
-      strings_table_(strings_table),
-      ignored_attributes_(ignored_attributes)
+      strings_table_(strings_table)
 {
     for (int i = 0; i < 100; i++) {
       entryTokens[i] = new EntryToken();
     }
+}
+
+void AttributesTable::set_ignored_attributes(std::vector<std::string> *ignored_attributes) {
+    ignored_attributes_ = ignored_attributes;
 }
 
 

@@ -11,7 +11,8 @@ class StringsTable;
 
 class AttributesTable {
 public:
-	AttributesTable(StringsTable* strings_table, std::vector<std::string> *ignored_attributes);
+	AttributesTable(StringsTable* strings_table);
+	void set_ignored_attributes(std::vector<std::string> *ignored_attributes);
     virtual ~AttributesTable();
 
 	bool add(const v8::Local<v8::Object>& pt, bool should_get_attr_str, v8::Local<v8::String>& attr_str, int* error);
