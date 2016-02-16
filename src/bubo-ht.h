@@ -41,6 +41,11 @@
 
   Only disallowed value in the Bubo Hash Set is a NULL value for the BYTE pointer.
 
+  This is half as efficient as it could be. Instead of the next pointers, we should write
+  a collision bit into a bit set. If a subsequent insert lands in a bucket i
+  where the collision bit is set, we check for equality with val and if not we go
+  to bucket i+1 instead of following next
+
  */
 
 
