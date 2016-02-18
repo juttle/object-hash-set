@@ -168,17 +168,10 @@ void AttributesTable::stats(v8::Local<v8::Object>& stats) const {
     static PersistentString blob_used_bytes("blob_used_bytes");
 
     static PersistentString ht_spine_len("ht_spine_len");
-    static PersistentString ht_spine_use("ht_spine_use");
     static PersistentString ht_entries("ht_entries");
     static PersistentString ht_bytes("ht_bytes");
-    static PersistentString ht_collision_slots("ht_collision_slots");
-    static PersistentString ht_total_chain_len("ht_total_chain_len");
-    static PersistentString ht_max_chain_len("ht_max_chain_len");
-    static PersistentString ht_1_2("ht_dist_1_2");
-    static PersistentString ht_3_5("ht_dist_3_5");
-    static PersistentString ht_6_9("ht_dist_6_9");
-    static PersistentString ht_10_("ht_dist_10_");
-    static PersistentString ht_avg_chain_len("ht_avg_chain_len");
+
+    static PersistentString ht_bit_set_bytes("ht_bit_set_bytes");
 
     static PersistentString ht_total_bytes("ht_total_bytes");
 
@@ -190,17 +183,9 @@ void AttributesTable::stats(v8::Local<v8::Object>& stats) const {
     attributes_hash_set_.get_stats(&bhs);
 
     Nan::Set(stats, ht_spine_len, Nan::New<v8::Number>(bhs.spine_len));
-    Nan::Set(stats, ht_spine_use, Nan::New<v8::Number>(bhs.spine_use));
     Nan::Set(stats, ht_entries, Nan::New<v8::Number>(bhs.entries));
     Nan::Set(stats, ht_bytes, Nan::New<v8::Number>(bhs.ht_bytes));
-    Nan::Set(stats, ht_collision_slots, Nan::New<v8::Number>(bhs.collision_slots));
-    Nan::Set(stats, ht_total_chain_len, Nan::New<v8::Number>(bhs.total_chain_len));
-    Nan::Set(stats, ht_max_chain_len, Nan::New<v8::Number>(bhs.max_chain_len));
-    Nan::Set(stats, ht_1_2, Nan::New<v8::Number>(bhs.dist_1_2));
-    Nan::Set(stats, ht_3_5, Nan::New<v8::Number>(bhs.dist_3_5));
-    Nan::Set(stats, ht_6_9, Nan::New<v8::Number>(bhs.dist_6_9));
-    Nan::Set(stats, ht_10_, Nan::New<v8::Number>(bhs.dist_10_));
-    Nan::Set(stats, ht_avg_chain_len, Nan::New<v8::Number>(bhs.avg_chain_len));
+    Nan::Set(stats, ht_bit_set_bytes, Nan::New<v8::Number>(bhs.bit_set_bytes));
 
     Nan::Set(stats, blob_allocated_bytes, Nan::New<v8::Number>(bhs.blob_allocated_bytes));
     Nan::Set(stats, blob_used_bytes, Nan::New<v8::Number>(bhs.blob_used_bytes));

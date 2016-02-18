@@ -65,7 +65,7 @@ describe('bubo', function() {
         bubo.test();
     });
 
-    it('handles add and remove correctly', function() {
+    it('handles add correctly', function() {
         var bubo = new Bubo(options);
 
         var expected = getAttributeString(point);
@@ -141,6 +141,7 @@ describe('bubo', function() {
         expect(s1.attrs_table.attr_entries).equal(1);
         expect(s1.attrs_table.blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1.attrs_table.blob_used_bytes).equal(13); // 1 byte for size, 6 x 2 bytes since all small numbers.
+        expect(s1.attrs_table.ht_bit_set_bytes).equal(512);
 
         var point2 = {
             name: 'apple',
@@ -156,6 +157,7 @@ describe('bubo', function() {
         expect(s1.attrs_table.attr_entries).equal(2);
         expect(s1.attrs_table.blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1.attrs_table.blob_used_bytes).equal(18); // 1 byte for size + 2 x 2 bytes = 5. already have 13, so total 18.
+        expect(s1.attrs_table.ht_bit_set_bytes).equal(512);
     });
 
     it('has an ignoredAttributes per Bubo', function() {
@@ -185,6 +187,23 @@ describe('bubo', function() {
         expect(function() { return new Bubo({ignoredAttributes: 1}); }).to.throw(Error);
         expect(function() { return new Bubo({ignoredAttributes: "ignoreme"}); }).to.throw(Error);
         expect(function() { return new Bubo({ignoredAttributes: {}}); }).to.throw(Error);
+    });
+
+    it('many points: resize/collisions', function() {
+        var bubo = new Bubo();
+        var points = [];
+        for (var i = 0; i < 100000; i++) {
+            points.push({number: i, name: 'many points'});
+        }
+        points.forEach(function(pt, i) {
+            expect(add(bubo, pt)).equal(true);
+            expect(bubo.contains(pt)).equal(true);
+        });
+
+        // ensure that points persisted across resizes
+        points.forEach(function(pt, i) {
+            expect(bubo.contains(pt)).equal(true);
+        });
     });
 
     it.skip('profiles the memory use of adding 7 million points', function() {

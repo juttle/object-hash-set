@@ -469,12 +469,8 @@ void test_hash_set() {
     bubo_hash_set.get_stats(&stat);
 
     assert(stat.spine_len == 4096); // initial spine size
-    assert(stat.spine_use == 0);
     assert(stat.entries == 0);
     assert(stat.ht_bytes == 4096 * 16);
-    assert(stat.collision_slots == 0);
-    assert(stat.total_chain_len == 0);
-    assert(stat.max_chain_len == 0);
     assert(stat.blob_allocated_bytes == (20 << 20));
     assert(stat.blob_used_bytes == 0);
 
@@ -496,12 +492,8 @@ void test_hash_set() {
     bubo_hash_set.get_stats(&stat);
 
     assert(stat.spine_len == 4096); // initial spine size
-    assert(stat.spine_use == 1);
     assert(stat.entries == 1);
     assert(stat.ht_bytes == 4096 * 16);
-    assert(stat.collision_slots == 0);
-    assert(stat.total_chain_len == 0);
-    assert(stat.max_chain_len == 0);
     assert(stat.blob_allocated_bytes == (20 << 20));
     assert(stat.blob_used_bytes == 8);
 
@@ -510,12 +502,8 @@ void test_hash_set() {
     assert(false == bubo_hash_set.insert(test, 8));
 
     assert(stat.spine_len == 4096);
-    assert(stat.spine_use == 1);
     assert(stat.entries == 1);
     assert(stat.ht_bytes == 4096 * 16);
-    assert(stat.collision_slots == 0);
-    assert(stat.total_chain_len == 0);
-    assert(stat.max_chain_len == 0);
     assert(stat.blob_allocated_bytes == (20 << 20));
     assert(stat.blob_used_bytes == 8);
 
@@ -523,7 +511,7 @@ void test_hash_set() {
 
 void test_hash_set_add_many_erase() {
 
-    BuboHashSet<BytePtrHash, BytePtrEqual> bubo_hash_set(512, 2048);
+    BuboHashSet<BytePtrHash, BytePtrEqual> bubo_hash_set(512, 16384);
     BuboHashStat stat;
 
     BYTE test[20];
@@ -545,9 +533,10 @@ void test_hash_set_add_many_erase() {
             bubo_hash_set.insert(test, 8);
         }
     }
+
     bubo_hash_set.get_stats(&stat);
 
-    assert(stat.spine_len == 2048);
+    assert(stat.spine_len == 16384);
     assert(stat.entries == 10000);
     assert(stat.blob_allocated_bytes == (20 << 20));
     assert(stat.blob_used_bytes == 80000);
@@ -562,7 +551,7 @@ void test_hash_set_add_many_erase() {
         }
     }
     bubo_hash_set.get_stats(&stat);
-    assert(stat.spine_len == 2048);
+    assert(stat.spine_len == 16384);
     assert(stat.entries == 9100);
     assert(stat.blob_allocated_bytes == (20 << 20));
     assert(stat.blob_used_bytes == 80000);

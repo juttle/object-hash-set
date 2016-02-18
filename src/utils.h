@@ -87,14 +87,17 @@ inline int get_entry_len(const BYTE* b) {
 }
 
 
-inline uint32_t hash_byte_sequence(const BYTE* data, int len) {
+inline uint32_t hash_byte_sequence(const BYTE* data, uint32_t len) {
     /* http://en.wikipedia.org/wiki/Jenkins_hash_function */
-    uint32_t hash = 0;
-    int i = 0;
-    for(; i < len; ++i)
-    {
-        hash ^= (hash << 5) + (hash >> 2) + data[i];
+    uint32_t hash, i;
+    for(hash = i = 0; i < len; ++i) {
+        hash += data[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
     }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
 
     return hash;
 }

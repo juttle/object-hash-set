@@ -19,13 +19,13 @@ Removes the object from the set. A future call to `add` or `contains` with an ob
 Object Hash Set works its magic by storing each distinct value of each key once and compactly encoding combinations of keys with references to these stored values. You can use the provided `scripts/perf.js` to give it a test. `perf.js` takes two parameters: `num_keys` and `values_per_key`. It generates a data set of (`values_per_key`^`num_keys`) distinct points, adds them all to an Object Hash Set, and periodically logs memory stats. Here's an example:
 ```
 node --expose-gc ./scripts/perf.js --num_keys 7 --values_per_key 10
-stored 0 points so far in 0.016 sec, memory usage: { rss: 20054016, heapTotal: 7523616, heapUsed: 4344872 }
-stored 100000 points so far in 1.119 sec, memory usage: { rss: 30150656, heapTotal: 10619424, heapUsed: 6892416 }
+stored 0 points so far in 0 sec, memory usage: { rss: 22519808, heapTotal: 10619424, heapUsed: 4954824 }
+stored 100000 points so far in 1.11 sec, memory usage: { rss: 29716480, heapTotal: 10619424, heapUsed: 7000328 }
 ...
-stored 9900000 points so far in 111.106 sec, memory usage: { rss: 490704896, heapTotal: 10619424, heapUsed: 6225264 }
-Finished! Stored 10000000 points, final memory usage: { rss: 494194688, heapTotal: 10619424, heapUsed: 4654384 }
+stored 9900000 points so far in 111.151 sec, memory usage: { rss: 420196352, heapTotal: 10619424, heapUsed: 6332040 }
+Finished! Stored 10000000 points, final memory usage: { rss: 421847040, heapTotal: 10619424, heapUsed: 4697928 }
 ```
-That comes out to 10,000,000 objects stored, taking up 494,194,688 bytes of RSS space (since Object Hash Set is a native C++ addon, it doesn't take up space in the Javascript heap for the objects it stores). If you naively hash these objects with `JSON.stringify` and store them as keys in a plain old Javascript object, the heap usage goes to 1.5 GB and the program crashes at around 6.5 million points. So Object Hash Set is almost 5 times more efficient. Nice!
+That comes out to 10,000,000 objects stored, taking up 421,847,040 bytes of RSS space (since Object Hash Set is a native C++ addon, it doesn't take up space in the Javascript heap for the objects it stores). If you naively hash these objects with `JSON.stringify` and store them as keys in a plain old Javascript object, the heap usage goes to 1.5 GB and the program crashes at around 6.5 million points. So Object Hash Set is over 5 times more efficient. Nice!
 
 ## Contributing
 
