@@ -104,7 +104,7 @@ JS_METHOD(Bubo, Add)
         Nan::Set(result, attr_str, attrs);
     }
 
-    info.GetReturnValue().Set(found);
+    info.GetReturnValue().Set(!found);
 }
 
 JS_METHOD(Bubo, Contains)

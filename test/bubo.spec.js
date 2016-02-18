@@ -69,20 +69,20 @@ describe('bubo', function() {
         var bubo = new Bubo(options);
 
         var expected = getAttributeString(point);
-        var found = add(bubo, point);
+        var is_new = add(bubo, point);
         expect(result.attr_str).equal(expected);
-        expect(found).to.be.false;
+        expect(is_new).to.be.true;
 
-        found = add(bubo, point);
+        is_new = add(bubo, point);
         expect(result.attr_str).equal(expected);
-        expect(found).to.be.true;
+        expect(is_new).to.be.false;
 
         // modify point and add. This should be false, and the attr_atr should differ from expected.
         var point2 = JSON.parse(JSON.stringify(point));
         point2.pop = 'NY';
-        found = add(bubo, point2);
+        is_new = add(bubo, point2);
         expect(result.attr_str).not.equal(expected);
-        expect(found).to.be.false;
+        expect(is_new).to.be.true;
     });
 
     it('add without result works', function() {
@@ -101,8 +101,8 @@ describe('bubo', function() {
         found = contains(bubo, point);
         expect(found).equal(false);
 
-        found = add(bubo, point);
-        expect(found).equal(false);
+        var is_new = add(bubo, point);
+        expect(is_new).equal(true);
 
         found = contains(bubo, point);
         expect(found).equal(true);
