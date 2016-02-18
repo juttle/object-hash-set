@@ -1,7 +1,7 @@
 {
-  "name": "bubo",
+  "name": "object-hash-set",
   "version": "0.1.0",
-  "description": "memory efficient object cache",
+  "description": "memory efficient object hash set",
   "main": "index.js",
   "directories": {
     "test": "test"
