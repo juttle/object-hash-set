@@ -1,6 +1,6 @@
 {
   "name": "object-hash-set",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "memory efficient object hash set",
   "main": "index.js",
   "directories": {
@@ -15,7 +15,7 @@
   ],
   "author": "Michael Demmer <demmer@jut.io>",
   "contributors": [
-      "Dave Galbraith <dave@jut.io>"
+    "Dave Galbraith <dave@jut.io>"
   ],
   "license": "Apache-2.0",
   "gypfile": true,
