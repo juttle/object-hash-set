@@ -1,6 +1,20 @@
 # Object Hash Set
 This is a hash set for Javascript objects. Its object-encoding algorithm is quite space-efficient, especially in the case where the input objects have largely the same keys, and most or all keys have low cardinality (number of distinct values of that key in the data set). Data with these characteristics often arises in time series data analysis applications, which is where this originated.
 
+## Downloading
+`npm install bubo`
+
+## Example
+```javascript
+var ObjectHashSet = require('object-hash-set');
+
+var set = new ObjectHashSet();
+
+set.add({abc: 123});
+console.log('does set contain {abc: 123}?: ' + set.contains({abc: 123}));
+console.log('does set contain {def: 123}?: ' + set.contains({def: 123}));
+```
+
 ## API
 
 ### new ObjectHashSet([options]) ###
