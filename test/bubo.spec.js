@@ -141,7 +141,7 @@ describe('bubo', function() {
         expect(s1.attrs_table.attr_entries).equal(1);
         expect(s1.attrs_table.blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1.attrs_table.blob_used_bytes).equal(13); // 1 byte for size, 6 x 2 bytes since all small numbers.
-        expect(s1.attrs_table.ht_bit_set_bytes).equal(512);
+        expect(s1.attrs_table.ht_occupied_bytes).equal(512);
 
         var point2 = {
             name: 'apple',
@@ -157,7 +157,7 @@ describe('bubo', function() {
         expect(s1.attrs_table.attr_entries).equal(2);
         expect(s1.attrs_table.blob_allocated_bytes).equal(20971520); //20MB default size
         expect(s1.attrs_table.blob_used_bytes).equal(18); // 1 byte for size + 2 x 2 bytes = 5. already have 13, so total 18.
-        expect(s1.attrs_table.ht_bit_set_bytes).equal(512);
+        expect(s1.attrs_table.ht_occupied_bytes).equal(512);
     });
 
     it('has an ignoredAttributes per Bubo', function() {

@@ -171,7 +171,7 @@ void AttributesTable::stats(v8::Local<v8::Object>& stats) const {
     static PersistentString ht_entries("ht_entries");
     static PersistentString ht_bytes("ht_bytes");
 
-    static PersistentString ht_bit_set_bytes("ht_bit_set_bytes");
+    static PersistentString ht_occupied_bytes("ht_occupied_bytes");
 
     static PersistentString ht_total_bytes("ht_total_bytes");
 
@@ -185,7 +185,7 @@ void AttributesTable::stats(v8::Local<v8::Object>& stats) const {
     Nan::Set(stats, ht_spine_len, Nan::New<v8::Number>(bhs.spine_len));
     Nan::Set(stats, ht_entries, Nan::New<v8::Number>(bhs.entries));
     Nan::Set(stats, ht_bytes, Nan::New<v8::Number>(bhs.ht_bytes));
-    Nan::Set(stats, ht_bit_set_bytes, Nan::New<v8::Number>(bhs.bit_set_bytes));
+    Nan::Set(stats, ht_occupied_bytes, Nan::New<v8::Number>(bhs.occupied_bytes));
 
     Nan::Set(stats, blob_allocated_bytes, Nan::New<v8::Number>(bhs.blob_allocated_bytes));
     Nan::Set(stats, blob_used_bytes, Nan::New<v8::Number>(bhs.blob_used_bytes));

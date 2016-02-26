@@ -19,7 +19,7 @@
   BuboHashSet is a simple hash set in which one can insert any BYTE pointer except NULL, and do lookups.
 
   Internally, it is an array of BYTE* pointers. Whenever there is a collision, we go to the next bucket.
-  our bit_set_ tells us which buckets are full
+  our occupied_ tells us which buckets are full
 
   Only disallowed value in the Bubo Hash Set is a NULL value for the BYTE pointer.
  */
@@ -33,7 +33,7 @@ struct BuboHashStat {
     uint64_t blob_allocated_bytes; //blobstore allocated
     uint64_t blob_used_bytes;      //blobstore used
 
-    uint64_t bit_set_bytes;
+    uint64_t occupied_bytes;
 
     uint64_t bytes;             // Total bytes of hash set plus blobstore.
 };
@@ -50,7 +50,7 @@ public:
                                                                 num_entries_(0),
                                                                 table_(new BYTE*[table_size_]()),
                                                                 blob_store_(new BlobStore()),
-                                                                bit_set_(table_size) {}
+                                                                occupied_(table_size) {}
 
     ~BuboHashSet() {
         clear();
@@ -126,9 +126,9 @@ public:
         blob_store_->stats(&allocated_bytes, &used_bytes);
         stat->blob_allocated_bytes = allocated_bytes;
         stat->blob_used_bytes = used_bytes;
-        stat->bit_set_bytes = bit_set_.size() / 8;
+        stat->occupied_bytes = occupied_.size() / 8;
 
-        stat->bytes = stat->ht_bytes + stat->blob_allocated_bytes + stat->bit_set_bytes;
+        stat->bytes = stat->ht_bytes + stat->blob_allocated_bytes + stat->occupied_bytes;
     }
 
 protected:
@@ -139,17 +139,17 @@ protected:
     BYTE** table_;
 
     BlobStore* blob_store_;
-    boost::dynamic_bitset<> bit_set_;
+    boost::dynamic_bitset<> occupied_;
 
     H hash;
     E equals;
 
     void insert_value_into_table_at_index(BYTE* value, BYTE** table, uint32_t index) {
-        while (bit_set_[index]) {
+        while (occupied_[index]) {
             index = (index + 1) % table_size_;
         }
 
-        bit_set_[index] = 1;
+        occupied_[index] = 1;
 
         table[index] = value;
 
@@ -161,7 +161,7 @@ protected:
      * Returns true if found.
      */
     inline bool find_at(uint32_t index, const BYTE* val, int len) {
-        while (bit_set_[index]) {
+        while (occupied_[index]) {
             BYTE** p = &table_[index];
             if (equals(*p, val, len)) {
                 return true;
@@ -181,8 +181,8 @@ protected:
         if (occupancy > RESIZE_THRESHOLD_PCT && table_size_ < max_table_size_) {
             uint32_t old_size = table_size_;
             table_size_ *= 2;
-            bit_set_.clear();
-            bit_set_.resize(table_size_);
+            occupied_.clear();
+            occupied_.resize(table_size_);
 
             num_entries_ = 0;
 
