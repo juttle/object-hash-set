@@ -190,6 +190,7 @@ describe('bubo', function() {
     });
 
     it('many points: resize/collisions', function() {
+        this.timeout(900000);
         var bubo = new Bubo();
         var points = [];
         for (var i = 0; i < 100000; i++) {
@@ -203,6 +204,11 @@ describe('bubo', function() {
         // ensure that points persisted across resizes
         points.forEach(function(pt, i) {
             expect(bubo.contains(pt)).equal(true);
+        });
+
+        points.forEach(function(pt) {
+            bubo.delete(pt);
+            expect(bubo.contains(pt)).equal(false);
         });
     });
 

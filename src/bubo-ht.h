@@ -14,6 +14,7 @@
 #define DEFAULT_MAX_HASH_TABLE_SZ (512 << 20)
 
 #define RESIZE_THRESHOLD_PCT 70
+#define ENTRY_NOT_FOUND UINT32_MAX
 
 /*
   BuboHashSet is a simple hash set in which one can insert any BYTE pointer except NULL, and do lookups.
@@ -63,32 +64,34 @@ public:
         assert(entry_buf);
         uint32_t idx = hash(entry_buf, entry_len) % table_size_;
 
-        bool found = find_at(idx, entry_buf, entry_len);
+        uint32_t found_index = find_at(idx, entry_buf, entry_len);
+        bool new_entry = found_index == ENTRY_NOT_FOUND;
 
-        if (!found) {
+        if (new_entry) {
             BYTE* blob_ptr = blob_store_->add(entry_buf, entry_len);
             insert_value_into_table_at_index(blob_ptr, table_, idx);
         }
 
         maybe_resize();
 
-        return !found;
+        return new_entry;
     }
 
     inline bool contains(const BYTE* entry_buf, int entry_len) {
         assert(entry_buf);
         uint32_t idx = hash(entry_buf, entry_len) % table_size_;
 
-        return find_at(idx, entry_buf, entry_len);
+        uint32_t found_index = find_at(idx, entry_buf, entry_len);
+        return found_index != ENTRY_NOT_FOUND;
     }
 
     inline void erase(BYTE* val) {
         int len = bubo_utils::get_entry_len(val);
         uint32_t index = hash(val, len) % table_size_;
 
-        bool found = find_at(index, val, len);
-        if (found) {
-            BYTE** entry_to_erase = &table_[index];
+        uint32_t found_index = find_at(index, val, len);
+        if (found_index != ENTRY_NOT_FOUND) {
+            BYTE** entry_to_erase = &table_[found_index];
             *entry_to_erase = NULL;
             num_entries_--;
         }
@@ -145,7 +148,7 @@ protected:
     E equals;
 
     void insert_value_into_table_at_index(BYTE* value, BYTE** table, uint32_t index) {
-        while (occupied_[index]) {
+        while (occupied_[index] && table[index] != NULL) {
             index = (index + 1) % table_size_;
         }
 
@@ -158,18 +161,18 @@ protected:
 
     /*
      * Checks if the val is present in the chain at spine_entry.
-     * Returns true if found.
+     * Returns index where found, ENTRY_NOT_FOUND if not.
      */
-    inline bool find_at(uint32_t index, const BYTE* val, int len) {
+    inline uint32_t find_at(uint32_t index, const BYTE* val, int len) {
         while (occupied_[index]) {
             BYTE** p = &table_[index];
             if (equals(*p, val, len)) {
-                return true;
+                return index;
             }
             index = (index + 1) % table_size_;
         }
 
-        return false;
+        return ENTRY_NOT_FOUND;
     }
 
     inline void maybe_resize() {
