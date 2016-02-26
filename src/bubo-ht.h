@@ -18,7 +18,7 @@
 /*
   BuboHashSet is a simple hash set in which one can insert any BYTE pointer except NULL, and do lookups.
 
-  Internally, it is an array of 'struct Entry' type objects. Whenever there is a collision, we go to the next bucket.
+  Internally, it is an array of BYTE* pointers. Whenever there is a collision, we go to the next bucket.
   our bit_set_ tells us which buckets are full
 
   Only disallowed value in the Bubo Hash Set is a NULL value for the BYTE pointer.
@@ -48,7 +48,7 @@ public:
     BuboHashSet(uint32_t table_size, uint32_t max_table_size) : table_size_(table_size),
                                                                 max_table_size_(max_table_size),
                                                                 num_entries_(0),
-                                                                table_(new Entry[table_size_]()),
+                                                                table_(new BYTE*[table_size_]()),
                                                                 blob_store_(new BlobStore()),
                                                                 bit_set_(table_size) {}
 
@@ -88,8 +88,8 @@ public:
 
         bool found = find_at(index, val, len);
         if (found) {
-            Entry* entry_to_erase = &table_[index];
-            entry_to_erase->val_ = NULL;
+            BYTE** entry_to_erase = &table_[index];
+            *entry_to_erase = NULL;
             num_entries_--;
         }
     }
@@ -98,7 +98,7 @@ public:
     inline void clear(uint32_t size) {
         // clear() does not deallocate the spine.
         for (uint32_t idx = 0; idx < size; idx++) {
-            table_[idx].val_ = NULL;
+            table_[idx] = NULL;
         }
     }
 
@@ -116,10 +116,10 @@ public:
         stat->spine_len = table_size_;
         stat->entries = num_entries_;
 
-        stat->ht_bytes = table_size_ * sizeof(Entry);
+        stat->ht_bytes = table_size_ * sizeof(BYTE*);
 
         for (uint32_t idx = 0; idx < table_size_; idx++) {
-            stat->ht_bytes += sizeof(Entry);
+            stat->ht_bytes += sizeof(BYTE*);
         }
 
         uint64_t allocated_bytes = 0, used_bytes = 0;
@@ -132,17 +132,11 @@ public:
     }
 
 protected:
-    struct Entry {
-        const BYTE* val_;
-        Entry() : val_(NULL) {}
-        Entry(const BYTE* v, Entry* n) : val_(v) {}
-    };
-
     uint32_t table_size_;
     uint32_t max_table_size_;
 
     uint64_t num_entries_;
-    Entry* table_;
+    BYTE** table_;
 
     BlobStore* blob_store_;
     boost::dynamic_bitset<> bit_set_;
@@ -150,14 +144,14 @@ protected:
     H hash;
     E equals;
 
-    void insert_value_into_table_at_index(const BYTE* value, Entry* table, uint32_t index) {
+    void insert_value_into_table_at_index(BYTE* value, BYTE** table, uint32_t index) {
         while (bit_set_[index]) {
             index = (index + 1) % table_size_;
         }
 
         bit_set_[index] = 1;
 
-        table[index].val_ = value;
+        table[index] = value;
 
         num_entries_ ++;
     }
@@ -168,8 +162,8 @@ protected:
      */
     inline bool find_at(uint32_t index, const BYTE* val, int len) {
         while (bit_set_[index]) {
-            Entry* p = &table_[index];
-            if (equals(p->val_, val, len)) {
+            BYTE** p = &table_[index];
+            if (equals(*p, val, len)) {
                 return true;
             }
             index = (index + 1) % table_size_;
@@ -192,19 +186,19 @@ protected:
 
             num_entries_ = 0;
 
-            Entry* new_table = new Entry[table_size_]();
+            BYTE** new_table = new BYTE*[table_size_]();
 
             for (uint32_t idx = 0; idx < old_size; idx++) {
-                Entry* p = &table_[idx];
-                if (p->val_) {
-                    int len = bubo_utils::get_entry_len(p->val_);
-                    uint32_t new_idx = hash(p->val_, len) % table_size_;
-                    insert_value_into_table_at_index(p->val_, new_table, new_idx);
+                BYTE** p = &table_[idx];
+                if (*p) {
+                    int len = bubo_utils::get_entry_len(*p);
+                    uint32_t new_idx = hash(*p, len) % table_size_;
+                    insert_value_into_table_at_index(*p, new_table, new_idx);
                 }
             }
 
             clear(old_size); //clear() operates on table_
-            Entry* tmp = table_;
+            BYTE** tmp = table_;
             table_ = new_table;
 
             delete [] tmp;
